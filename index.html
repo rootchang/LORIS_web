@@ -347,25 +347,14 @@
         }
 
         .banner {
-            width: 100vw; /* 100% of the viewport width */
-            max-width: 100%;
             position: relative;
             color: black;
             padding: 20px;
             text-align: center;
             overflow: hidden;
-        }
-
-        .banner::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('bg2.jpg') no-repeat center center;
+            height: 200px; /* Set an appropriate height for the banner */
+            background: url('bg2_tp.jpg') no-repeat center center fixed;
             background-size: cover;
-            opacity: 0.5; /* Adjust the opacity as needed */
             z-index: -1;
         }
 
