@@ -145,8 +145,8 @@
 
         function displayResult(ORR, ORR_CI, probCal, probCal2) {
             // Reset the ResultHead and ResultExplanation to their initial values
-            document.getElementById("ResultHead").innerHTML = "Probability of response to immunotherapy (95% confidence interval)";
-            document.getElementById("ResultExplanation").innerHTML = "This number shows, as a percentage, the probability that your cancer will respond to immune checkpoint blockade (ICB) therapy (e.g., anti-PD-1, anti-PD-L1, and/or anti-CTLA-4). This probability means that for every 100 patients like you, we expect that approximately <span id='probCal'>...</span> will respond to ICB therapy, and <span id='probCal2'>...</span> will not.<br><br>Results produced by this tool are based on data from patients treated in the MSK-IMPACT clinical trial, where approximately ninety percent were stage IV patients, and approximately seventy percent had received systemic therapies before ICB therapy. This tool was further externally validated using data from multiple independent studies (see <a href='https://doi.org/10.1101/2023.07.04.547697' target='_blank'>Original Publication</a>).<br><br><b>Caution</b>: The mechanism of cancer ICB response is complex, and the response is influenced by many other factors not included in this tool; therefore, this tool alone should not substitute for professional consultation. The tool has been developed for research purposes. Please use it at your own risk for clinical decision-making.";
+            document.getElementById("ResultHead").innerHTML = "The likelihood of response to immune checkpoint blockade therapy (95% confidence interval)";
+            document.getElementById("ResultExplanation").innerHTML = "This result provides the likelihood of response to immune checkpoint blockade (ICB) therapy. The likelihood means that the calculator estimates that among 100 that share the same features as those entered, approximately <span id='probCal'>...</span> are likely to respond to ICB therapy, while <span id='probCal2'>...</span> are much less likely to respond,  Importantly, this is just a rough ballpark estimate, and each patient is an individual case and your physician is likely to give you a much better estimate, based on numerous additional features.<br><br><b>An important cautionary note</b>: The mechanism of cancer ICB response is complex, and the response is influenced by many other factors not included in this tool. It is <b>NOT approved by the FDA or any other official regulatory agencies, and by all means, should not serve as substitute for expert professional consultation.</b>";
             // Set the main calculated result
             document.getElementById("CalculatedResult").innerHTML = '<span style="font-size: 48px; font-weight: bold;">' + ORR + '</span><br><span style="font-size: 20px; font-weight: normal;">' + ORR_CI + '</span>';
             // Update the circles based on the calculated result
@@ -352,6 +352,7 @@
             padding: 20px;
             text-align: center;
             overflow: hidden;
+            height: 200px;
         }
 
         .banner::before {
@@ -566,13 +567,21 @@
 	<div class='banner'>
         <h1 style="display: flex; align-items: center; justify-content: center;">
             <img src="LORIS_logo2.png" alt="LORIS Logo" style="height: 60px; margin-right: 10px;">
-            <span style="font-size: 7; font-family: Georgia, Arial; color: #DA6619;">LORIS:</span>&nbsp;
+            <span style="font-size: 7; font-family: Georgia, Arial; color: #DA6619;">LORIS:</span>&nbsp
+            A&nbsp
             <span style="font-size: 7; font-family: Georgia, Arial; color: #DA6619;">LO</span>gistic&nbsp;
             <span style="font-size: 7; font-family: Georgia, Arial; color: #DA6619;">R</span>egression-based&nbsp;
             <span style="font-size: 7; font-family: Georgia, Arial; color: #DA6619;">I</span>mmunotherapy-response&nbsp;
             <span style="font-size: 7; font-family: Georgia, Arial; color: #DA6619;">S</span>core
         </h1>
-        Based on a few common clinical, pathologic, and genomic features, LORIS can help estimate patient response probability to immunotherapy.
+        <p style="line-height: 1.5; text-align: left;">
+            The calculator enclosed computes the LORIS score, providing an estimate of the likelihood of response to immune
+            checkpoint blockade (ICB) therapy (including anti-PD-1, anti-PD-L1, an anti-CTLA-4) for different cancer types.
+            This is a research tool (see <a href='https://doi.org/10.1101/2023.07.04.547697' target='_blank'>Original Publication</a>)
+            provided here as a service to the community. <b>Notably and
+            importantly, it is NOT approved by the FDA or any other official regulatory agencies, and by all means, should
+            not serve as substitute for expert professional consultation.</b>
+        </p>
     </div>
 
     <div class="content-container" id="container">
