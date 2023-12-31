@@ -348,11 +348,12 @@
 
         .banner {
             position: relative;
+            margin-top: 0;
             color: black;
             padding: 20px;
             text-align: center;
             overflow: hidden;
-            height: 200px;
+            height: 20%;
         }
 
         .banner::before {
@@ -369,6 +370,7 @@
         }
 
         h1 {
+            font-size: 2vw;
             font-family: 'Roboto', sans-serif;
             margin-bottom: 10px;
         }
@@ -419,7 +421,7 @@
         }
 
         #calculator input[type="number"] {
-            width: 20%; /* Smaller width for text box */
+            width: 30%; /* Smaller width for text box */
             padding: 8px;
             margin-top: 5px;
             border: 1px solid #ddd;
@@ -429,7 +431,7 @@
         }
 
         #calculator input[type="range"] {
-            width: 77%; /* Width for slider */
+            width: 66%; /* Width for slider */
             margin-top: 5px;
             display: inline-block; /* Allows elements to be side by side */
         }
@@ -547,17 +549,25 @@
             margin-top: 20px;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             h1 {
-                font-size: 1em; /* Smaller font size for h1 on smaller screens */
+                font-size: 2vw; /* Adjust font size for smaller screens */
             }
-            .banner {
-                padding: 10px; /* Smaller padding for the banner */
+            .banner, .bottom {
+                padding: 10px; /* Reduce padding */
             }
-            /* If you need to adjust the banner's background image size or position */
+            #container {
+                flex-direction: column; /* Stack elements vertically on small screens */
+            }
+            #calculator, #result {
+                width: 100%; /* Full width on small screens */
+                max-width: none; /* Override the max-width */
+            }
             .banner::before {
-                background-size: contain; /* Or another suitable value */
-                /* Adjust other background properties if needed */
+                background-size: contain; /* Adjust the background size */
+            }
+            .risk {
+                font-size: 1em; /* Adjust text size for readability */
             }
         }
     </style>
