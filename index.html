@@ -11,7 +11,9 @@
     <meta name="title" content="LORIS: LOgistic Regression-based Immunotherapy-response Score, by National Cancer Institute">
     <meta name="description" content="Calculate cancer patient immunotherapy response probability, according to a few clinical, pathologic, and genomic features. Model is trained on the response of patients from MSK-IMPACT trial.">
     <meta name="author" content="National Cancer Institute">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="MobileOptimized" content="width" />
+    <meta name="HandheldFriendly" content="true" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta property="og:type" content="website">
     <meta property="og:title" content="LORIS: LOgistic Regression-based Immunotherapy-response Score, by National Cancer Institute">
     <meta property="og:description" content="Calculate cancer patient immunotherapy response probability, according to a few clinical, pathologic, and genomic features. Model is trained on the response of patients from MSK-IMPACT trial.">
@@ -384,7 +386,7 @@
             border-radius: 8px;
             padding: 20px;
             max-width: 620px;
-            min-width: 620px;
+            min-width: 300px;
             //min-height: 150px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
@@ -535,20 +537,20 @@
             font-weight: bold;
         }
 
+        .content-container {
+            min-height: calc(100vh - 250px);
+        }
+
         .bottom {
             font-size: 0.8em;
             color: #666;
             text-align: center;
             margin-top: 20px;
-            position: absolute; /* Position the element at the bottom of its containing element */
-            bottom: 10px; /* Align to the bottom */
-            width: 100%; /* Set width to 100% of the viewport */
-            left: 0; /* Align to the left side of the viewport */
         }
 
         @media (max-width: 768px) {
             h1 {
-                font-size: 1.5em; /* Smaller font size for h1 on smaller screens */
+                font-size: 1em; /* Smaller font size for h1 on smaller screens */
             }
             .banner {
                 padding: 10px; /* Smaller padding for the banner */
@@ -575,7 +577,7 @@
         Based on a few common clinical, pathologic, and genomic features, LORIS can help estimate patient response probability to immunotherapy.
     </div>
 
-    <div id="container">
+    <div class="content-container" id="container">
         <table id="calculator">
             <caption>Your information</caption> <!-- Header for the calculator table -->
             <tr>
