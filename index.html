@@ -11,6 +11,7 @@
     <meta name="title" content="LORIS: LOgistic Regression-based Immunotherapy-response Score, by National Cancer Institute">
     <meta name="description" content="Calculate cancer patient immunotherapy response probability, according to a few clinical, pathologic, and genomic features. Model is trained on the response of patients from MSK-IMPACT trial.">
     <meta name="author" content="National Cancer Institute">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta property="og:type" content="website">
     <meta property="og:title" content="LORIS: LOgistic Regression-based Immunotherapy-response Score, by National Cancer Institute">
     <meta property="og:description" content="Calculate cancer patient immunotherapy response probability, according to a few clinical, pathologic, and genomic features. Model is trained on the response of patients from MSK-IMPACT trial.">
@@ -344,6 +345,8 @@
         }
 
         .banner {
+            width: 100vw; /* 100% of the viewport width */
+            max-width: 100%;
             position: relative;
             color: black;
             padding: 20px;
@@ -545,7 +548,15 @@
 
         @media (max-width: 768px) {
             h1 {
-                font-size: 1.5em;
+                font-size: 1.5em; /* Smaller font size for h1 on smaller screens */
+            }
+            .banner {
+                padding: 10px; /* Smaller padding for the banner */
+            }
+            /* If you need to adjust the banner's background image size or position */
+            .banner::before {
+                background-size: contain; /* Or another suitable value */
+                /* Adjust other background properties if needed */
             }
         }
     </style>
