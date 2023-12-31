@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script src="/__/firebase/10.7.1/firebase-app.js"></script>
+    <script src="/__/firebase/10.7.1/firebase-analytics.js"></script>
+    <script src="const.js"></script>
+    <meta charset="utf-8">
+    <title>LORIS: LOgistic Regression-based Immunotherapy-response Score, by National Cancer Institute</title>
+    <meta name="title" content="LORIS: LOgistic Regression-based Immunotherapy-response Score, by National Cancer Institute">
+    <meta name="description" content="Calculate cancer patient immunotherapy response probability, according to a few clinical, pathologic, and genomic features. Model is trained on the response of patients from MSK-IMPACT trial.">
+    <meta name="author" content="National Cancer Institute">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="LORIS: LOgistic Regression-based Immunotherapy-response Score, by National Cancer Institute">
+    <meta property="og:description" content="Calculate cancer patient immunotherapy response probability, according to a few clinical, pathologic, and genomic features. Model is trained on the response of patients from MSK-IMPACT trial.">
+    <script>
+
+        function changeValue(elementId, elementSlideId) {
+            resetInput();
+            if (elementId == "age") {
+                MIN_val = CONSTANTS.MIN_AGE
+                MAX_val = CONSTANTS.MAX_AGE
+            } else if (elementId == "TMB") {
+                MIN_val = CONSTANTS.MIN_TMB
+                MAX_val = CONSTANTS.MAX_TMB
+            } else if (elementId == "albumin") {
+                MIN_val = CONSTANTS.MIN_Albumin
+                MAX_val = CONSTANTS.MAX_Albumin
+            } else if (elementId == "NLR") {
+                MIN_val = CONSTANTS.MIN_NLR
+                MAX_val = CONSTANTS.MAX_NLR
+            } else if (elementId == "PDL1") {
+                MIN_val = CONSTANTS.MIN_PDL1
+                MAX_val = CONSTANTS.MAX_PDL1
+            }
+
+            let value_set = document.getElementById(elementId).value;
+            if (value_set<MIN_val) {
+              document.getElementById(elementId).value = MIN_val;
+              value_set = MIN_val;
+            }
+            if (value_set>MAX_val) {
+              document.getElementById(elementId).value = MAX_val;
+              value_set = MAX_val;
+            }
+            document.getElementById(elementSlideId).value = value_set;
+        }
+        function changeSlide(elementId, elementSlideId) {
+            resetInput();
+            let value_set = document.getElementById(elementSlideId).value;
+            document.getElementById(elementId).value = value_set;
+        }
+
+        function findClosestScore(OR) {
+            const scores = Object.keys(CONSTANTS.score_ORR_lookup_LLR6Pan).map(Number);
+            let closest = scores.reduce((a, b) => {
+                return Math.abs(b - OR) < Math.abs(a - OR) ? b : a;
+            });
+            return closest;
+        }
+
+        function displayRisk(OR, model_type) {
+            let risk = 1 / (1 + OR);
+            risk = Math.round(risk * 100) / 100;
+            let closestScore = findClosestScore(risk);
+            let ORR;
+            let ORR025;
+            let ORR975;
+            if (model_type == "LLR6Pan"){
+                [ORR, ORR025, ORR975] = CONSTANTS.score_ORR_lookup_LLR6Pan[closestScore];
+            } else if (model_type == "LLR6NSCLC"){
+                [ORR, ORR025, ORR975] = CONSTANTS.score_ORR_lookup_LLR6NSCLC[closestScore];
+            } else if (model_type == "LLR5Pan"){
+                [ORR, ORR025, ORR975] = CONSTANTS.score_ORR_lookup_LLR5Pan[closestScore];
+            } else if (model_type == "LLR5NSCLC"){
+                [ORR, ORR025, ORR975] = CONSTANTS.score_ORR_lookup_LLR5NSCLC[closestScore];
+            } else {
+                alert("Please select a valid Model!");
+                return;
+            }
+            NR_in_100 = String((100-ORR * 100).toFixed(0));
+            R_in_100 = String((ORR * 100).toFixed(0));
+            ORR = String((ORR * 100).toFixed(0)) + '%';
+            ORR025 = String((ORR025 * 100).toFixed(0));
+            ORR975 = String((ORR975 * 100).toFixed(0)) + '%';
+            let outString = ORR;
+            let outOfString = '(' + ORR025 + ' - ' + ORR975 + ')';
+            return [outString, outOfString, R_in_100, NR_in_100];
+        }
+
+        function clearInputs() {
+            document.getElementById('model_type').selectedIndex = 0;
+            document.getElementById('age').value = '';
+            document.getElementById('ageSlide').value = String(CONSTANTS.MIN_AGE);
+            document.getElementById('TMB').value = '';
+            document.getElementById('TMBSlide').value = String(CONSTANTS.MIN_TMB);
+            document.getElementById('PDL1').value = '';
+            document.getElementById('PDL1Slide').value = String(CONSTANTS.MIN_PDL1);
+            document.getElementById('albumin').value = '';
+            document.getElementById('albuminSlide').value = String(CONSTANTS.MIN_Albumin);
+            document.getElementById('NLR').value = '';
+            document.getElementById('NLRSlide').value = String(0);
+            document.getElementById('cancer_type').selectedIndex = 0;
+            document.getElementById('chemo_history').selectedIndex = 0;
+            resetInput();
+        }
+
+        function setDisabledStyle(elementId) {
+            var element = document.getElementById(elementId);
+            element.disabled = true;
+            element.style.backgroundColor = "#e0e0e0";
+        }
+        function setEnabledStyle(elementId) {
+            var element = document.getElementById(elementId);
+            element.disabled = false;
+            element.style.backgroundColor = "white";
+        }
+
+        function resetInput() {
+            document.getElementById("ResultHead").innerHTML = "";
+            document.getElementById("CalculatedResult").innerHTML = "";
+            document.getElementById("circleContainer").innerHTML = "";
+            document.getElementById("ResultExplanation").innerHTML = "";
+        }
+
+        function updateCircles(calculatedProbability) {
+            const circleContainer = document.getElementById('circleContainer');
+            circleContainer.innerHTML = ''; // Clear existing circles
+            for (let i = 0; i < 100; i++) {
+                const circleImage = document.createElement('img'); // Create an img element
+                circleImage.classList.add('circle');
+                if (i < calculatedProbability) {
+                    circleImage.src = 'Responder.png'; // Set source to Responder.png for the calculated probability
+                } else {
+                    circleImage.src = 'Nonresponder.png'; // Set source to Nonresponder.png for the rest
+                }
+                circleContainer.appendChild(circleImage);
+            }
+        }
+
+
+        function displayResult(ORR, ORR_CI, probCal, probCal2) {
+            // Reset the ResultHead and ResultExplanation to their initial values
+            document.getElementById("ResultHead").innerHTML = "Probability of response to immunotherapy (95% confidence interval)";
+            document.getElementById("ResultExplanation").innerHTML = "This number shows, as a percentage, the probability that your cancer will respond to immune checkpoint blockade (ICB) therapy (e.g., anti-PD-1, anti-PD-L1, and/or anti-CTLA-4). This probability means that for every 100 patients like you, we expect that approximately <span id='probCal'>...</span> will respond to ICB therapy, and <span id='probCal2'>...</span> will not.<br><br>Results produced by this tool are based on data from patients treated in the MSK-IMPACT clinical trial, where approximately ninety percent were stage IV patients, and approximately seventy percent had received systemic therapies before ICB therapy. This tool was further externally validated using data from multiple independent studies (see <a href='https://doi.org/10.1101/2023.07.04.547697' target='_blank'>Original Publication</a>).<br><br><b>Caution</b>: The mechanism of cancer ICB response is complex, and the response is influenced by many other factors not included in this tool; therefore, this tool alone should not substitute for professional consultation. The tool has been developed for research purposes. Please use it at your own risk for clinical decision-making.";
+            // Set the main calculated result
+            document.getElementById("CalculatedResult").innerHTML = '<span style="font-size: 48px; font-weight: bold;">' + ORR + '</span><br><span style="font-size: 20px; font-weight: normal;">' + ORR_CI + '</span>';
+            // Update the circles based on the calculated result
+            updateCircles(probCal); // Reuse the function you have for generating circles
+            // Update the probability values in the explanation
+            document.getElementById("probCal").textContent = probCal;
+            document.getElementById("probCal2").textContent = probCal2;
+            }
+
+        window.onload = function() {
+            setDisabledStyle("PDL1");
+            setDisabledStyle("PDL1Slide");
+            resetInput();
+        };
+
+        function checkModelType() {
+            resetInput();
+
+            var modelType = document.getElementById("model_type").value;
+            if (modelType === "LLR6Pan") {
+                setEnabledStyle("chemo_history");
+                setEnabledStyle("cancer_type");
+                // Clear and disable PDL1 input
+                document.getElementById("PDL1").value = "";
+                setDisabledStyle("PDL1");
+                document.getElementById("PDL1Slide").value = String(CONSTANTS.MIN_PDL1);
+                setDisabledStyle("PDL1Slide");
+            } else if (modelType === "LLR5Pan") {
+                setEnabledStyle("cancer_type");
+                // Clear and disable PDL1 and chemo_history input
+                document.getElementById("PDL1").value = "";
+                setDisabledStyle("PDL1");
+                document.getElementById("PDL1Slide").value = String(CONSTANTS.MIN_PDL1);
+                setDisabledStyle("PDL1Slide");
+                document.getElementById("chemo_history").value = "";
+                setDisabledStyle("chemo_history");
+            } else if (modelType === "LLR6NSCLC") {
+                setEnabledStyle("chemo_history");
+                setEnabledStyle("PDL1");
+                setEnabledStyle("PDL1Slide");
+                // Clear and disable cancer_type input
+                document.getElementById("cancer_type").value = "";
+                setDisabledStyle("cancer_type");
+            } else if (modelType === "LLR5NSCLC") {
+                setEnabledStyle("PDL1");
+                setEnabledStyle("PDL1Slide");
+                // Clear and disable cancer_type and chemo_history input
+                document.getElementById("cancer_type").value = "";
+                setDisabledStyle("cancer_type");
+                document.getElementById("chemo_history").value = "";
+                setDisabledStyle("chemo_history");
+            } else {
+                alert("Please select a valid Model!");
+                return;
+            }
+        }
+
+        function computeRisk() {
+            // user inputs
+            let age = document.getElementById("age").value;
+            let cancer_type = document.getElementById("cancer_type").value;
+            let chemo_history = document.getElementById("chemo_history").value;
+            let albumin = document.getElementById("albumin").value;
+            let NLR = document.getElementById("NLR").value;
+            let TMB = document.getElementById("TMB").value;
+            let PDL1 = document.getElementById("PDL1").value;
+            let model_type = document.getElementById("model_type").value;
+
+            if (age=="") {
+                alert("Please enter a valid patient age!");
+                return;
+            }
+            age = Number(age)
+
+            if (["LLR6Pan", "LLR5Pan"].includes(model_type)) {
+                if (cancer_type=="") {
+                    alert("Please select a valid Cancer type!");
+                    return;
+                }
+            }
+
+            if (["LLR6Pan", "LLR6NSCLC"].includes(model_type)) {
+                if (chemo_history=="") {
+                    alert("Please select a valid Previous systemic therapy history!");
+                    return;
+                }
+            }
+
+            if (albumin=="") {
+                alert("Please enter a valid Blood albumin!");
+                return;
+            }
+            albumin = Number(albumin)
+
+            if (NLR=="") {
+                alert("Please enter a valid Blood neutrophil-to-lymphocyte ratio!");
+                return;
+            }
+            NLR = Number(NLR)
+
+            if (TMB=="") {
+                alert("Please enter a valid Tumor mutational burden!");
+                return;
+            }
+            TMB = Number(TMB)
+
+            if (["LLR6NSCLC", "LLR5NSCLC"].includes(model_type)) {
+                if (PDL1=="") {
+                    alert("Please enter a valid PD-L1 tumor proportion score!");
+                    return;
+                }
+                PDL1 = Number(PDL1)
+            }
+
+            let mortalityLogOR;
+            if (model_type == "LLR6Pan"){
+                mortalityLogOR = -2.663569384884529 +
+                Math.min(TMB,50) * 0.04402069 +
+                (chemo_history=='yes') * -0.95742317 +
+                albumin * 0.65691216 +
+                Math.min(NLR,25) * -0.03733682 +
+                Math.min(age,85) * 0.00748933  +
+                (cancer_type=="Bladder") * -0.4822024815338707 +
+                (cancer_type=="Breast") * -0.07203915947867234 +
+                (cancer_type=="Colorectal") * -0.20145826001892642 +
+                (cancer_type=="Endometrial") * 0.10345490263721475 +
+                (cancer_type=="Esophageal") * 0.48668657791290343 +
+                (cancer_type=="Gastric") * 0.1899473602530846 +
+                (cancer_type=="Head_Neck") * 0.07016275225551956 +
+                (cancer_type=="Hepatobiliary") * -0.23304076750462574 +
+                (cancer_type=="Melanoma") * -0.10911861333208761 +
+                (cancer_type=="Mesothelioma") * -0.026239811048115562 +
+                (cancer_type=="NSCLC") * 0.0056240336264663255 +
+                (cancer_type=="Ovarian") * -0.09971426686630935 +
+                (cancer_type=="Pancreatic") * -1.2078460078388555 +
+                (cancer_type=="Renal") * 0.8004345508180791 +
+                (cancer_type=="Sarcoma") * 0.04696853834374907 +
+                (cancer_type=="SCLC") * -0.005779413239244845 +
+                (cancer_type=="Other") * 0;
+            } else if (model_type == "LLR6NSCLC"){
+                mortalityLogOR = -1.5413249116546892 +
+                Math.min(TMB,50) * 3.53526307e-02 +
+                PDL1 * 1.10577809e-02 +
+                (chemo_history=='yes') * -3.71124609e-01 +
+                albumin * 2.87634044e-01 +
+                Math.min(NLR,25) * -1.05921890e-02 +
+                Math.min(age,85) * 3.01592069e-05;
+            } else if (model_type == "LLR5Pan"){
+                mortalityLogOR = -3.7256067282515746 +
+                Math.min(TMB,50) * 0.04585159 +
+                albumin * 0.71900319 +
+                Math.min(NLR,25) * -0.04498181 +
+                Math.min(age,85) * 0.0109262  +
+                (cancer_type=="Bladder") * -0.5539934636232641 +
+                (cancer_type=="Breast") * -0.25290341309416775 +
+                (cancer_type=="Colorectal") * -0.3428875211355777 +
+                (cancer_type=="Endometrial") * -0.010927160925007623 +
+                (cancer_type=="Esophageal") * 0.4806365485191027 +
+                (cancer_type=="Gastric") * 0.329660841860277 +
+                (cancer_type=="Head_Neck") * -0.004476773562338537 +
+                (cancer_type=="Hepatobiliary") * -0.287359968199123 +
+                (cancer_type=="Melanoma") * 0.22342414393479748 +
+                (cancer_type=="Mesothelioma") * -0.0725466133039033 +
+                (cancer_type=="NSCLC") * 0.02028427707293726 +
+                (cancer_type=="Ovarian") * -0.22345051882807654 +
+                (cancer_type=="Pancreatic") * -1.4182469247677578 +
+                (cancer_type=="Renal") * 0.782968065894044 +
+                (cancer_type=="Sarcoma") * 0.00018395873172186955 +
+                (cancer_type=="SCLC") * -0.14659309353129546 +
+                (cancer_type=="Other") * 0;
+            } else if (model_type == "LLR5NSCLC"){
+                mortalityLogOR = -1.9673291213370763 +
+                Math.min(TMB,50) * 3.61540803e-02 +
+                PDL1 * 1.30231965e-02 +
+                albumin * 3.25593123e-01 +
+                Math.min(NLR,25) * -1.03800630e-02 +
+                Math.min(age,85) * 7.52832651e-05;
+            } else{
+                alert("Please select a valid Model!");
+                return;
+            }
+            let mortalityOR = Math.exp(-mortalityLogOR);
+            let CalculatedResult = displayRisk(mortalityOR, model_type);
+            displayResult(CalculatedResult[0], CalculatedResult[1], CalculatedResult[2], CalculatedResult[3]);
+            //document.getElementById("CalculatedResult").innerHTML = CalculatedResult[0];
+            //document.getElementById("ResultExplanation").innerHTML = CalculatedResult[1];
+        }
+
+    </script>
+
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .banner {
+            position: relative;
+            color: black;
+            padding: 20px;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('bg2.jpg') no-repeat center center;
+            background-size: cover;
+            opacity: 0.5; /* Adjust the opacity as needed */
+            z-index: -1;
+        }
+
+        h1 {
+            font-family: 'Roboto', sans-serif;
+            margin-bottom: 10px;
+        }
+
+        #container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px; /* Spacing between elements */
+        }
+
+        #calculator, #result {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 620px;
+            min-width: 620px;
+            //min-height: 150px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #calculator caption, #result caption {
+            font-size: 24px; /* Set the font size */
+            font-weight: bold; /* Make the text bold */
+            margin-top: 10px; /* Add space above the caption */
+            margin-bottom: 10px; /* Add space below the caption */
+            text-align: center; /* Align the text */
+            color: darkgreen; /* Set the color */
+            font-family: 'Impact', sans-serif; // Arial, Impact, Verdana, Helvetica, Georgia, Tahoma
+        }
+
+        #calculator tr {
+            line-height: 1.5em;
+        }
+
+        #calculator td {
+            text-align: right;
+            padding: 5px;
+        }
+
+        #calculator select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        #calculator input[type="number"] {
+            width: 20%; /* Smaller width for text box */
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            display: inline-block;
+        }
+
+        #calculator input[type="range"] {
+            width: 77%; /* Width for slider */
+            margin-top: 5px;
+            display: inline-block; /* Allows elements to be side by side */
+        }
+
+        #buttons {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 10px; /* Spacing between buttons */
+            margin-top: auto; /* Pushes the buttons down */
+            margin-bottom: auto; /* Centers the buttons vertically */
+        }
+
+        .action-button {
+            background-color: darkblue;
+            color: white;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .action-button:hover {
+            background-color: #1d4c80; /* Slightly darker blue on hover */
+        }
+
+        .action-button.clear {
+            background: none;
+            color: black;
+            text-decoration: underline;
+        }
+
+        input[type=submit] {
+            background-color: #2457a0;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+
+        input[type=submit]:hover {
+            background-color: #1d4c80;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            margin: 10px 0;
+            width: 100%;
+        }
+
+        input[type=range]:focus {
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            background: #00ACC1;
+            border-radius: 1.3px;
+            height: 8.4px;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            border: 1px solid #000000;
+            height: 36px;
+            width: 16px;
+            border-radius: 3px;
+            background: #fff;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -14px;
+        }
+
+        .radio input {
+            display: none;
+        }
+
+        .radio label {
+            display: inline-block;
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .radio input:checked + label {
+            background-color: #00ACC1;
+            color: white;
+            border-color: #00ACC1;
+        }
+
+        .circle {
+            width: 12px;
+            height: 15px;
+            //border-radius: 50%;
+            //background-color: lightgray;
+        }
+
+        .risk {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .bottom {
+            font-size: 0.8em;
+            color: #666;
+            text-align: center;
+            margin-top: 20px;
+            position: absolute; /* Position the element at the bottom of its containing element */
+            bottom: 10px; /* Align to the bottom */
+            width: 100%; /* Set width to 100% of the viewport */
+            left: 0; /* Align to the left side of the viewport */
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+	<div class='banner'>
+        <h1 style="display: flex; align-items: center; justify-content: center;">
+            <img src="LORIS_logo2.png" alt="LORIS Logo" style="height: 60px; margin-right: 10px;">
+            <span style="font-size: 7; font-family: Georgia, Arial; color: #DA6619;">LORIS:</span>&nbsp;
+            <span style="font-size: 7; font-family: Georgia, Arial; color: #DA6619;">LO</span>gistic&nbsp;
+            <span style="font-size: 7; font-family: Georgia, Arial; color: #DA6619;">R</span>egression-based&nbsp;
+            <span style="font-size: 7; font-family: Georgia, Arial; color: #DA6619;">I</span>mmunotherapy-response&nbsp;
+            <span style="font-size: 7; font-family: Georgia, Arial; color: #DA6619;">S</span>core
+        </h1>
+        Based on a few common clinical, pathologic, and genomic features, LORIS can help estimate patient response probability to immunotherapy.
+    </div>
+
+    <div id="container">
+        <table id="calculator">
+            <caption>Your information</caption> <!-- Header for the calculator table -->
+            <tr>
+                <td><b>Model used:</b></td>
+                <td colspan="2">
+                    <select id="model_type" onChange="checkModelType()">
+                        <option value=""></option>
+                        <option value="LLR6Pan"selected>Pan-cancer (6 variables)</option>
+                        <option value="LLR6NSCLC">NSCLC-specific (6 variables)</option>
+                        <option value="LLR5Pan">Pan-cancer (5 variables)</option>
+                        <option value="LLR5NSCLC">NSCLC-specific (5 variables)</option>
+                    </select>
+                </td>
+            </tr>
+
+            <tr>
+                <td>Patient age (years):</td>
+                <td colspan="2"> <input type="number" id="age" value="60" onChange="changeValue('age','ageSlide')" min=String(CONSTANTS.MIN_AGE) max=String(CONSTANTS.MAX_AGE)>
+                <input type="range" id="ageSlide" value="60" onInput="changeSlide('age','ageSlide')" min=String(CONSTANTS.MIN_AGE) max=String(CONSTANTS.MAX_AGE)>
+                </td>
+            </tr>
+
+            <tr>
+                <td>Cancer type:</td>
+                <td colspan="2">
+                    <select id="cancer_type" onChange="resetInput();">
+                        <option value=""></option>
+                        <option value="Bladder"selected>Bladder</option>
+                        <option value="Breast">Breast</option>
+                        <option value="Colorectal">Colorectal</option>
+                        <option value="Endometrial">Endometrial</option>
+                        <option value="Esophageal">Esophageal</option>
+                        <option value="Gastric">Gastric</option>
+                        <option value="Head_Neck">Head&Neck</option>
+                        <option value="Hepatobiliary">Hepatobiliary</option>
+                        <option value="Melanoma">Melanoma</option>
+                        <option value="Mesothelioma">Mesothelioma</option>
+                        <option value="NSCLC">NSCLC</option>
+                        <option value="Ovarian">Ovarian</option>
+                        <option value="Pancreatic">Pancreatic</option>
+                        <option value="Renal">Renal</option>
+                        <option value="Sarcoma">Sarcoma</option>
+                        <option value="SCLC">SCLC</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </td>
+            </tr>
+
+            <tr>
+                <td>Previous systemic therapy:</td>
+                <td colspan="2">
+                    <select id="chemo_history" onChange="resetInput();">
+                        <option value=""></option>
+                        <option value="yes">yes</option>
+                        <option value="no"selected>no</option>
+                    </select>
+                </td>
+            </tr>
+
+            <tr>
+                <td>Blood albumin (g/dL):</td>
+                <td colspan="2">
+                    <input type="number" id="albumin" value="4" onChange="changeValue('albumin','albuminSlide')" min=String(CONSTANTS.MIN_Albumin) max="10">
+                    <input type="range" id="albuminSlide" value="4" onInput="changeSlide('albumin','albuminSlide')" min=String(CONSTANTS.MIN_Albumin) max="10">
+                </td>
+            </tr>
+
+            <tr>
+                <td>Blood neutrophil-to-lymphocyte ratio:</td>
+                <td colspan="2"> <input type="number" id="NLR" value="4" onChange="changeValue('NLR','NLRSlide')" min=String(CONSTANTS.MIN_NLR) max=String(CONSTANTS.MAX_NLR)>
+                <input type="range" id="NLRSlide" value="4" onInput="changeSlide('NLR','NLRSlide')" min=String(CONSTANTS.MIN_NLR) max=String(CONSTANTS.CONSTANTS.MAX_NLR)>
+                </td>
+            </tr>
+
+            <tr>
+                <td>Tumor mutational burden (mut/Mb):</td>
+                <td colspan="2"> <input type="number" id="TMB" value="10" onChange="changeValue('TMB','TMBSlide')" min=String(CONSTANTS.MIN_TMB) max=String(CONSTANTS.MAX_TMB)>
+                <input type="range" id="TMBSlide" value="10" onInput="changeSlide('TMB','TMBSlide')" min=String(CONSTANTS.MIN_TMB) max=String(CONSTANTS.MAX_TMB)>
+                </td>
+            </tr>
+
+            <tr>
+                <td>PD-L1 tumor proportion score (%):</td>
+                <td colspan="2"> <input type="number" id="PDL1" value="" onChange="changeValue('PDL1','PDL1Slide')" min=String(CONSTANTS.MIN_PDL1) max=String(CONSTANTS.MAX_PDL1)>
+                <input type="range" id="PDL1Slide" value="0" onInput="changeSlide('PDL1','PDL1Slide')" min=String(CONSTANTS.MIN_PDL1) max=String(CONSTANTS.MAX_PDL1)>
+                </td>
+            </tr>
+        </table>
+
+        <div id="buttons">
+            <button class="action-button" onclick="computeRisk()">Calculate</button>
+            <button class="action-button clear" onclick="clearInputs()">Clear</button>
+        </div>
+
+        <table id="result">
+            <caption>Your result</caption>
+            <tr>
+                <td style="margin-bottom: 20px;">
+                    <span id="ResultHead" style="color: darkblue; font-weight: bold;">
+                        <!-- Text will be displayed by JavaScript -->
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td style="margin-top: 10px; display: flex; align-items: center;">
+                    <div id="CalculatedResult" class="risk" style="color: black; flex: 1;">...</div>
+                    <div id="circleContainer" style="flex: 3; display: grid; grid-template-columns: repeat(20, 1fr); gap: 2px;">
+                        <!-- Circles will be added here by JavaScript -->
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div id="ResultExplanation" class="risk" style="color: black; font-weight: normal; font-size: 12px; text-align: left; margin-top: 20px;">
+                        <!-- Context will be displayed by JavaScript -->
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+    </div>
+
+    <div class='bottom'>
+        <br>
+        <hr style="height:2px;border-width:0;color:gray;background-color:gray">
+        Citation: <a href="https://doi.org/10.1101/2023.07.04.547697" target='_blank'>Chang et al.
+                Robust prediction of patient outcomes with immune checkpoint blockade therapy for cancer using common clinical,
+                pathologic, and genomic features. <i>Nature Cancer</i>, (2024)</a><br>
+        &copy; Copyright 2024, National Cancer Institute.&nbsp;v1.1&nbsp;updated Jan 1, 2024.<br>
+        </small>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+        const firebaseConfig = {
+        apiKey: "AIzaSyBvqQMFQWkJ-WD2IMctDIG03ZGNx4bDXbg",
+        authDomain: "loris-fd1d0.firebaseapp.com",
+        projectId: "loris-fd1d0",
+        storageBucket: "loris-fd1d0.appspot.com",
+        messagingSenderId: "746918400012",
+        appId: "1:746918400012:web:91715c7c9b6572406d9e29",
+        measurementId: "G-HX31NCZC7Y"
+        };
+        const app = initializeApp(firebaseConfig);
+        firebase.analytics();
+    </script>
+
+</body>
+</html>
