@@ -98,17 +98,6 @@
             resetInput();
         }
 
-        function setDisabledStyle(elementId) {
-            var element = document.getElementById(elementId);
-            element.disabled = true;
-            element.style.backgroundColor = "#e0e0e0";
-        }
-        function setEnabledStyle(elementId) {
-            var element = document.getElementById(elementId);
-            element.disabled = false;
-            element.style.backgroundColor = "white";
-        }
-
         function resetInput() {
             document.getElementById("ResultHead").innerHTML = "";
             document.getElementById("CalculatedResult").innerHTML = "";
@@ -533,22 +522,22 @@
             <tr>
                 <td>Blood albumin (g/dL):</td>
                 <td colspan="2">
-                    <input type="number" id="albumin" value="4" onChange="changeValue('albumin','albuminSlide')" min=String(CONSTANTS.MIN_Albumin) max="10">
-                    <input type="range" id="albuminSlide" value="4" onInput="changeSlide('albumin','albuminSlide')" min=String(CONSTANTS.MIN_Albumin) max="10">
+                    <input type="number" id="albumin" value="4" onChange="changeValue('albumin','albuminSlide')" min=String(CONSTANTS.MIN_Albumin) max=String(CONSTANTS.MAX_Albumin)>
+                    <input type="range" id="albuminSlide" value="4" onInput="changeSlide('albumin','albuminSlide')" min=1.6 max=5.3 step="0.1">
                 </td>
             </tr>
 
             <tr>
                 <td>Blood neutrophil-to-lymphocyte ratio:</td>
                 <td colspan="2"> <input type="number" id="NLR" value="4" onChange="changeValue('NLR','NLRSlide')" min=String(CONSTANTS.MIN_NLR) max=String(CONSTANTS.MAX_NLR)>
-                <input type="range" id="NLRSlide" value="4" onInput="changeSlide('NLR','NLRSlide')" min=String(CONSTANTS.MIN_NLR) max=String(CONSTANTS.CONSTANTS.MAX_NLR)>
+                <input type="range" id="NLRSlide" value="4" onInput="changeSlide('NLR','NLRSlide')" min=0 max=50>
                 </td>
             </tr>
 
             <tr>
                 <td>Tumor mutational burden (mut/Mb):</td>
                 <td colspan="2"> <input type="number" id="TMB" value="10" onChange="changeValue('TMB','TMBSlide')" min=String(CONSTANTS.MIN_TMB) max=String(CONSTANTS.MAX_TMB)>
-                <input type="range" id="TMBSlide" value="10" onInput="changeSlide('TMB','TMBSlide')" min=String(CONSTANTS.MIN_TMB) max=String(CONSTANTS.MAX_TMB)>
+                <input type="range" id="TMBSlide" value="10" onInput="changeSlide('TMB','TMBSlide')" min=0 max=100>
                 </td>
             </tr>
         </table>
