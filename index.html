@@ -33,9 +33,6 @@
             } else if (elementId == "NLR") {
                 MIN_val = CONSTANTS.MIN_NLR
                 MAX_val = CONSTANTS.MAX_NLR
-            } else if (elementId == "PDL1") {
-                MIN_val = CONSTANTS.MIN_PDL1
-                MAX_val = CONSTANTS.MAX_PDL1
             }
 
             let value_set = document.getElementById(elementId).value;
@@ -63,25 +60,16 @@
             return closest;
         }
 
-        function displayRisk(OR, model_type) {
+        function displayRisk(OR) {
             let risk = 1 / (1 + OR);
             risk = Math.round(risk * 100) / 100;
             let closestScore = findClosestScore(risk);
             let ORR;
             let ORR025;
             let ORR975;
-            if (model_type == "LLR6Pan"){
-                [ORR, ORR025, ORR975] = CONSTANTS.score_ORR_lookup_LLR6Pan[closestScore];
-            } else if (model_type == "LLR6NSCLC"){
-                [ORR, ORR025, ORR975] = CONSTANTS.score_ORR_lookup_LLR6NSCLC[closestScore];
-            } else if (model_type == "LLR5Pan"){
-                [ORR, ORR025, ORR975] = CONSTANTS.score_ORR_lookup_LLR5Pan[closestScore];
-            } else if (model_type == "LLR5NSCLC"){
-                [ORR, ORR025, ORR975] = CONSTANTS.score_ORR_lookup_LLR5NSCLC[closestScore];
-            } else {
-                alert("Please select a valid Model!");
-                return;
-            }
+
+            [ORR, ORR025, ORR975] = CONSTANTS.score_ORR_lookup_LLR6Pan[closestScore];
+
             NR_in_100 = String((100-ORR * 100).toFixed(0));
             R_in_100 = String((ORR * 100).toFixed(0));
             ORR = String((ORR * 100).toFixed(0)) + '%';
@@ -93,13 +81,10 @@
         }
 
         function clearInputs() {
-            document.getElementById('model_type').selectedIndex = 0;
             document.getElementById('age').value = '';
             document.getElementById('ageSlide').value = String(CONSTANTS.MIN_AGE);
             document.getElementById('TMB').value = '';
             document.getElementById('TMBSlide').value = String(CONSTANTS.MIN_TMB);
-            document.getElementById('PDL1').value = '';
-            document.getElementById('PDL1Slide').value = String(CONSTANTS.MIN_PDL1);
             document.getElementById('albumin').value = '';
             document.getElementById('albuminSlide').value = String(CONSTANTS.MIN_Albumin);
             document.getElementById('NLR').value = '';
@@ -146,7 +131,7 @@
         function displayResult(ORR, ORR_CI, probCal, probCal2) {
             // Reset the ResultHead and ResultExplanation to their initial values
             document.getElementById("ResultHead").innerHTML = "The likelihood of response to immune checkpoint blockade therapy (95% confidence interval)";
-            document.getElementById("ResultExplanation").innerHTML = "This result provides the likelihood of response to immune checkpoint blockade (ICB) therapy. The likelihood means that the calculator estimates that among 100 that share the same features as those entered, approximately <span id='probCal'>...</span> are likely to respond to ICB therapy, while <span id='probCal2'>...</span> are much less likely to respond,  Importantly, this is just a rough ballpark estimate, and each patient is an individual case and your physician is likely to give you a much better estimate, based on numerous additional features.<br><br><b>An important cautionary note</b>: The mechanism of cancer ICB response is complex, and the response is influenced by many other factors not included in this tool. It is <b>NOT approved by the FDA or any other official regulatory agencies, and by all means, should not serve as substitute for expert professional consultation.</b>";
+            document.getElementById("ResultExplanation").innerHTML = "This result provides the likelihood of response to immune checkpoint blockade (ICB) therapy. The likelihood means that the calculator estimates that among 100 patients that share the same features as those entered, approximately <span id='probCal'>...</span> are likely to respond to ICB therapy, while <span id='probCal2'>...</span> are much less likely to respond,  Importantly, this is just a rough ballpark estimate, and each patient is an individual case and your physician is likely to give you a much better estimate, based on numerous additional features.<br><br><b>An important cautionary note</b>: The mechanism of cancer ICB response is complex, and the response is influenced by many other factors not included in this tool. It is <b>NOT approved by the FDA or any other official regulatory agencies, and by all means, should not serve as substitute for expert professional consultation.</b>";
             // Set the main calculated result
             document.getElementById("CalculatedResult").innerHTML = '<span style="font-size: 48px; font-weight: bold;">' + ORR + '</span><br><span style="font-size: 20px; font-weight: normal;">' + ORR_CI + '</span>';
             // Update the circles based on the calculated result
@@ -157,52 +142,8 @@
             }
 
         window.onload = function() {
-            setDisabledStyle("PDL1");
-            setDisabledStyle("PDL1Slide");
             resetInput();
         };
-
-        function checkModelType() {
-            resetInput();
-
-            var modelType = document.getElementById("model_type").value;
-            if (modelType === "LLR6Pan") {
-                setEnabledStyle("chemo_history");
-                setEnabledStyle("cancer_type");
-                // Clear and disable PDL1 input
-                document.getElementById("PDL1").value = "";
-                setDisabledStyle("PDL1");
-                document.getElementById("PDL1Slide").value = String(CONSTANTS.MIN_PDL1);
-                setDisabledStyle("PDL1Slide");
-            } else if (modelType === "LLR5Pan") {
-                setEnabledStyle("cancer_type");
-                // Clear and disable PDL1 and chemo_history input
-                document.getElementById("PDL1").value = "";
-                setDisabledStyle("PDL1");
-                document.getElementById("PDL1Slide").value = String(CONSTANTS.MIN_PDL1);
-                setDisabledStyle("PDL1Slide");
-                document.getElementById("chemo_history").value = "";
-                setDisabledStyle("chemo_history");
-            } else if (modelType === "LLR6NSCLC") {
-                setEnabledStyle("chemo_history");
-                setEnabledStyle("PDL1");
-                setEnabledStyle("PDL1Slide");
-                // Clear and disable cancer_type input
-                document.getElementById("cancer_type").value = "";
-                setDisabledStyle("cancer_type");
-            } else if (modelType === "LLR5NSCLC") {
-                setEnabledStyle("PDL1");
-                setEnabledStyle("PDL1Slide");
-                // Clear and disable cancer_type and chemo_history input
-                document.getElementById("cancer_type").value = "";
-                setDisabledStyle("cancer_type");
-                document.getElementById("chemo_history").value = "";
-                setDisabledStyle("chemo_history");
-            } else {
-                alert("Please select a valid Model!");
-                return;
-            }
-        }
 
         function computeRisk() {
             // user inputs
@@ -212,58 +153,42 @@
             let albumin = document.getElementById("albumin").value;
             let NLR = document.getElementById("NLR").value;
             let TMB = document.getElementById("TMB").value;
-            let PDL1 = document.getElementById("PDL1").value;
-            let model_type = document.getElementById("model_type").value;
 
             if (age=="") {
                 alert("Please enter a valid patient age!");
                 return;
             }
-            age = Number(age)
+            age = Number(age);
 
-            if (["LLR6Pan", "LLR5Pan"].includes(model_type)) {
-                if (cancer_type=="") {
-                    alert("Please select a valid Cancer type!");
-                    return;
-                }
+            if (cancer_type=="") {
+                alert("Please select a valid Cancer type!");
+                return;
             }
 
-            if (["LLR6Pan", "LLR6NSCLC"].includes(model_type)) {
-                if (chemo_history=="") {
-                    alert("Please select a valid Previous systemic therapy history!");
-                    return;
-                }
+            if (chemo_history=="") {
+                alert("Please select a valid Previous systemic therapy history!");
+                return;
             }
 
             if (albumin=="") {
                 alert("Please enter a valid Blood albumin!");
                 return;
             }
-            albumin = Number(albumin)
+            albumin = Number(albumin);
 
             if (NLR=="") {
                 alert("Please enter a valid Blood neutrophil-to-lymphocyte ratio!");
                 return;
             }
-            NLR = Number(NLR)
+            NLR = Number(NLR);
 
             if (TMB=="") {
                 alert("Please enter a valid Tumor mutational burden!");
                 return;
             }
-            TMB = Number(TMB)
+            TMB = Number(TMB);
 
-            if (["LLR6NSCLC", "LLR5NSCLC"].includes(model_type)) {
-                if (PDL1=="") {
-                    alert("Please enter a valid PD-L1 tumor proportion score!");
-                    return;
-                }
-                PDL1 = Number(PDL1)
-            }
-
-            let mortalityLogOR;
-            if (model_type == "LLR6Pan"){
-                mortalityLogOR = -2.663569384884529 +
+            let mortalityLogOR = -2.663569384884529 +
                 Math.min(TMB,50) * 0.04402069 +
                 (chemo_history=='yes') * -0.95742317 +
                 albumin * 0.65691216 +
@@ -286,53 +211,12 @@
                 (cancer_type=="Sarcoma") * 0.04696853834374907 +
                 (cancer_type=="SCLC") * -0.005779413239244845 +
                 (cancer_type=="Other") * 0;
-            } else if (model_type == "LLR6NSCLC"){
-                mortalityLogOR = -1.5413249116546892 +
-                Math.min(TMB,50) * 3.53526307e-02 +
-                PDL1 * 1.10577809e-02 +
-                (chemo_history=='yes') * -3.71124609e-01 +
-                albumin * 2.87634044e-01 +
-                Math.min(NLR,25) * -1.05921890e-02 +
-                Math.min(age,85) * 3.01592069e-05;
-            } else if (model_type == "LLR5Pan"){
-                mortalityLogOR = -3.7256067282515746 +
-                Math.min(TMB,50) * 0.04585159 +
-                albumin * 0.71900319 +
-                Math.min(NLR,25) * -0.04498181 +
-                Math.min(age,85) * 0.0109262  +
-                (cancer_type=="Bladder") * -0.5539934636232641 +
-                (cancer_type=="Breast") * -0.25290341309416775 +
-                (cancer_type=="Colorectal") * -0.3428875211355777 +
-                (cancer_type=="Endometrial") * -0.010927160925007623 +
-                (cancer_type=="Esophageal") * 0.4806365485191027 +
-                (cancer_type=="Gastric") * 0.329660841860277 +
-                (cancer_type=="Head_Neck") * -0.004476773562338537 +
-                (cancer_type=="Hepatobiliary") * -0.287359968199123 +
-                (cancer_type=="Melanoma") * 0.22342414393479748 +
-                (cancer_type=="Mesothelioma") * -0.0725466133039033 +
-                (cancer_type=="NSCLC") * 0.02028427707293726 +
-                (cancer_type=="Ovarian") * -0.22345051882807654 +
-                (cancer_type=="Pancreatic") * -1.4182469247677578 +
-                (cancer_type=="Renal") * 0.782968065894044 +
-                (cancer_type=="Sarcoma") * 0.00018395873172186955 +
-                (cancer_type=="SCLC") * -0.14659309353129546 +
-                (cancer_type=="Other") * 0;
-            } else if (model_type == "LLR5NSCLC"){
-                mortalityLogOR = -1.9673291213370763 +
-                Math.min(TMB,50) * 3.61540803e-02 +
-                PDL1 * 1.30231965e-02 +
-                albumin * 3.25593123e-01 +
-                Math.min(NLR,25) * -1.03800630e-02 +
-                Math.min(age,85) * 7.52832651e-05;
-            } else{
-                alert("Please select a valid Model!");
-                return;
-            }
+
             let mortalityOR = Math.exp(-mortalityLogOR);
-            let CalculatedResult = displayRisk(mortalityOR, model_type);
+            let CalculatedResult = displayRisk(mortalityOR);
+
+
             displayResult(CalculatedResult[0], CalculatedResult[1], CalculatedResult[2], CalculatedResult[3]);
-            //document.getElementById("CalculatedResult").innerHTML = CalculatedResult[0];
-            //document.getElementById("ResultExplanation").innerHTML = CalculatedResult[1];
         }
 
     </script>
@@ -543,8 +427,8 @@
         }
 
         .bottom {
-            font-size: 0.8em;
-            color: #666;
+            font-size: 1.5em;
+            //color: #666;
             text-align: center;
             margin-top: 20px;
         }
@@ -597,18 +481,6 @@
     <div class="content-container" id="container">
         <table id="calculator">
             <caption>Your information</caption> <!-- Header for the calculator table -->
-            <tr>
-                <td><b>Model used:</b></td>
-                <td colspan="2">
-                    <select id="model_type" onChange="checkModelType()">
-                        <option value=""></option>
-                        <option value="LLR6Pan"selected>Pan-cancer model (6 variables)</option>
-                        <option value="LLR6NSCLC">NSCLC-specific model (6 variables)</option>
-                        <option value="LLR5Pan">Pan-cancer model (5 variables)</option>
-                        <option value="LLR5NSCLC">NSCLC-specific model (5 variables)</option>
-                    </select>
-                </td>
-            </tr>
 
             <tr>
                 <td>Patient age (years):</td>
@@ -673,13 +545,6 @@
                 <td>Tumor mutational burden (mut/Mb):</td>
                 <td colspan="2"> <input type="number" id="TMB" value="10" onChange="changeValue('TMB','TMBSlide')" min=String(CONSTANTS.MIN_TMB) max=String(CONSTANTS.MAX_TMB)>
                 <input type="range" id="TMBSlide" value="10" onInput="changeSlide('TMB','TMBSlide')" min=String(CONSTANTS.MIN_TMB) max=String(CONSTANTS.MAX_TMB)>
-                </td>
-            </tr>
-
-            <tr>
-                <td>PD-L1 tumor proportion score (%):</td>
-                <td colspan="2"> <input type="number" id="PDL1" value="" onChange="changeValue('PDL1','PDL1Slide')" min=String(CONSTANTS.MIN_PDL1) max=String(CONSTANTS.MAX_PDL1)>
-                <input type="range" id="PDL1Slide" value="0" onInput="changeSlide('PDL1','PDL1Slide')" min=String(CONSTANTS.MIN_PDL1) max=String(CONSTANTS.MAX_PDL1)>
                 </td>
             </tr>
         </table>
