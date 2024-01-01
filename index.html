@@ -37,11 +37,15 @@
 
             let value_set = document.getElementById(elementId).value;
             if (value_set<MIN_val) {
-              document.getElementById(elementId).value = MIN_val;
+              alert("The entered value is out of the allowed range. Please adjust the slider to select a value within the permitted range.");
+              document.getElementById(elementId).innerHTML = "";
+              document.getElementById(elementId).value = "";
               value_set = MIN_val;
             }
             if (value_set>MAX_val) {
-              document.getElementById(elementId).value = MAX_val;
+              alert("The entered value is out of the allowed range. Please adjust the slider to select a value within the permitted range.");
+              document.getElementById(elementId).innerHTML = "";
+              document.getElementById(elementId).value = "";
               value_set = MAX_val;
             }
             document.getElementById(elementSlideId).value = value_set;
@@ -500,16 +504,16 @@
                         <option value="Endometrial">Endometrial</option>
                         <option value="Esophageal">Esophageal</option>
                         <option value="Gastric">Gastric</option>
-                        <option value="Head_Neck">Head&Neck</option>
+                        <option value="Head_Neck">Head & Neck</option>
                         <option value="Hepatobiliary">Hepatobiliary</option>
                         <option value="Melanoma">Melanoma</option>
                         <option value="Mesothelioma">Mesothelioma</option>
-                        <option value="NSCLC">NSCLC</option>
+                        <option value="NSCLC">Non-small cell lung cell</option>
                         <option value="Ovarian">Ovarian</option>
                         <option value="Pancreatic">Pancreatic</option>
                         <option value="Renal">Renal</option>
                         <option value="Sarcoma">Sarcoma</option>
-                        <option value="SCLC">SCLC</option>
+                        <option value="SCLC">Small cell lung cell</option>
                         <option value="Other">Other</option>
                     </select>
                 </td>
