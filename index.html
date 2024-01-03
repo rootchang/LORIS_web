@@ -9,14 +9,15 @@
     <meta charset="utf-8">
     <title>LORIS: LOgistic Regression-based Immunotherapy-response Score, by National Cancer Institute</title>
     <meta name="title" content="LORIS: LOgistic Regression-based Immunotherapy-response Score, by National Cancer Institute">
-    <meta name="description" content="Calculate cancer patient immunotherapy response probability, according to a few clinical, pathologic, and genomic features. Model is trained on the response of patients from MSK-IMPACT trial.">
+    <meta name="description" content="Despite the revolutionary impact of immune checkpoint blockade (ICB) in cancer treatment, accurately predicting patients’ responses remains elusive. We analyzed the largest dataset to date, consisting of eight cohorts of 2,881 ICB-treated patients, along with a cohort of 841 non-ICB treated patients, spanning across 18 solid tumor types. This comprehensive analysis encompassed a wide range of clinical, pathologic, and genomic features. We have developed a new clinical score called the LOgistic Regression-based Immunotherapy-response Score (LORIS) using a transparent and concise 6-feature logistic regression model. LORIS outperforms previous signatures in ICB response prediction and can identify responsive patients, even those with low tumor mutational burden or tumor PD-L1 expression. Importantly, LORIS consistently predicts both objective responses and short-term and long-term survival across most cancer types. Moreover, LORIS showcases a near-monotonic relationship with ICB response probability and patient survival, enabling more precise patient stratification across the board. As our method is accurate, interpretable, and only utilizes a few readily measurable features, we anticipate it will help improve clinical decision-making practices in precision medicine to maximize patient benefit.">
+    <meta name="keywords" content="cancer, immune checkpoint blockade, ICB, anti-PD-1, anti-PD-L1, anti-CTLA-4, immunotherapy, cancer immunology, machine learning, TMB, tumor mutational burden, blood albumin, neutrophil to lymphocyte ratio, solid tumor, patient age, LORIS, predict ICB response, RECIST, clinical, pathologic, genomic, overall survival, progression free survival, objective response, monotonic, patient stratification, Logistic regression">
     <meta name="author" content="National Cancer Institute">
     <meta name="MobileOptimized" content="width" />
     <meta name="HandheldFriendly" content="true" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta property="og:type" content="website">
     <meta property="og:title" content="LORIS: LOgistic Regression-based Immunotherapy-response Score, by National Cancer Institute">
-    <meta property="og:description" content="Calculate cancer patient immunotherapy response probability, according to a few clinical, pathologic, and genomic features. Model is trained on the response of patients from MSK-IMPACT trial.">
+    <meta property="og:description" content="Despite the revolutionary impact of immune checkpoint blockade (ICB) in cancer treatment, accurately predicting patients’ responses remains elusive. We analyzed the largest dataset to date, consisting of eight cohorts of 2,881 ICB-treated patients, along with a cohort of 841 non-ICB treated patients, spanning across 18 solid tumor types. This comprehensive analysis encompassed a wide range of clinical, pathologic, and genomic features. We have developed a new clinical score called the LOgistic Regression-based Immunotherapy-response Score (LORIS) using a transparent and concise 6-feature logistic regression model. LORIS outperforms previous signatures in ICB response prediction and can identify responsive patients, even those with low tumor mutational burden or tumor PD-L1 expression. Importantly, LORIS consistently predicts both objective responses and short-term and long-term survival across most cancer types. Moreover, LORIS showcases a near-monotonic relationship with ICB response probability and patient survival, enabling more precise patient stratification across the board. As our method is accurate, interpretable, and only utilizes a few readily measurable features, we anticipate it will help improve clinical decision-making practices in precision medicine to maximize patient benefit.">
     <script>
 
         function changeValue(elementId, elementSlideId) {
@@ -126,7 +127,7 @@
             result.style.height = "auto";
             // Reset the ResultHead and ResultExplanation to their initial values
             document.getElementById("ResultHead").innerHTML = "The likelihood of response to immune checkpoint blockade therapy (95% confidence interval)";
-            document.getElementById("ResultExplanation").innerHTML = "This result provides the likelihood of response to immune checkpoint blockade (ICB) therapy. The likelihood means that the calculator estimates that among 100 patients that share the same features as those entered, approximately <span id='probCal'>...</span> are likely to respond to ICB therapy, while <span id='probCal2'>...</span> are much less likely to respond. Importantly, this is just a rough ballpark estimate, and each patient is an individual case and your physician is likely to give you a much better estimate, based on numerous additional features.<br><br><b>An important cautionary note</b>: The mechanism of cancer ICB response is complex, and the response is influenced by many other factors not included in this tool. It is <b>NOT approved by the FDA or any other official regulatory agencies, and by all means, should not serve as substitute for expert professional consultation.</b>";
+            document.getElementById("ResultExplanation").innerHTML = "This result provides the likelihood of response to immune checkpoint blockade therapy. The likelihood means that the calculator estimates that among 100 patients that share the same features as those entered, approximately <span id='probCal'>...</span> are likely to respond to the immune checkpoint blockade therapy, while <span id='probCal2'>...</span> are much less likely to respond. Importantly, this is just a rough ballpark estimate, and each patient is an individual case and your physician is likely to give you a much better estimate, based on numerous additional features.<br><br><b>An important cautionary note</b>: The mechanism of cancer immune response is complex, and the response is influenced by many other factors not included in this tool. It is <b>NOT approved by the FDA or any other official regulatory agencies, and by all means, should not serve as substitute for expert professional consultation.</b>";
             // Set the main calculated result
             document.getElementById("CalculatedResult").innerHTML = '<span style="font-size: 48px; font-weight: bold;">' + ORR + '</span><br><span style="font-size: 20px; font-weight: normal;">' + ORR_CI + '</span>';
             // Update the circles based on the calculated result
@@ -264,7 +265,7 @@
             background-color: white;
             border-radius: 8px;
             padding: 10px;
-            width: 30%;
+            width: 45%;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
@@ -277,7 +278,7 @@
             border-radius: 8px;
             padding: 20px;
             padding-top: 40px; /* Additional padding at the top for the caption */
-            width: 60%;
+            width: 45%;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             overflow: hidden; /* Prevents content from overflowing */
         }
@@ -321,7 +322,7 @@
         }
 
         #calculator input[type="range"] {
-            width: 66%; /* Width for slider */
+            width: 60%; /* Width for slider */
             margin-top: 5px;
             display: inline-block; /* Allows elements to be side by side */
         }
@@ -412,7 +413,7 @@
             margin-top: 0px;
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 1000px) {
             h1 {
                 font-size: 2vw; /* Adjust font size for smaller screens */
             }
@@ -448,8 +449,8 @@
             <span style="font-size: 7; font-family: Georgia, Arial; color: #DA6619;">S</span>core
         </h1>
         <p style="line-height: 1.5; text-align: left;">
-            The calculator enclosed computes the LORIS score, providing an estimate of the likelihood of response to immune
-            checkpoint blockade (ICB) therapy (including anti-PD-1, anti-PD-L1, an anti-CTLA-4) for different cancer types.
+            The calculator enclosed provides an estimate of the likelihood of response to immune
+            checkpoint blockade therapy (including anti-PD-1, anti-PD-L1, and anti-CTLA-4) for different cancer types.
             This is a research tool (see <a href='https://doi.org/10.1101/2023.07.04.547697' target='_blank'>Original Publication</a>)
             provided here as a service to the community. <b>Notably and
             importantly, it is NOT approved by the FDA or any other official regulatory agencies, and by all means, should
