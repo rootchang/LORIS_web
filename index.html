@@ -20,7 +20,7 @@
     <script>
 
         function changeValue(elementId, elementSlideId) {
-            resetInput();
+            hideResultContainer();
             if (elementId == "age") {
                 MIN_val = CONSTANTS.MIN_AGE
                 MAX_val = CONSTANTS.MAX_AGE
@@ -51,7 +51,7 @@
             document.getElementById(elementSlideId).value = value_set;
         }
         function changeSlide(elementId, elementSlideId) {
-            resetInput();
+            hideResultContainer();
             let value_set = document.getElementById(elementSlideId).value;
             document.getElementById(elementId).value = value_set;
         }
@@ -95,14 +95,7 @@
             document.getElementById('NLRSlide').value = String(0);
             document.getElementById('cancer_type').selectedIndex = 0;
             document.getElementById('chemo_history').selectedIndex = 0;
-            resetInput();
-        }
-
-        function resetInput() {
-            document.getElementById("ResultHead").innerHTML = "";
-            document.getElementById("CalculatedResult").innerHTML = "";
-            document.getElementById("circleContainer").innerHTML = "";
-            document.getElementById("ResultExplanation").innerHTML = "";
+            hideResultContainer();
         }
 
         function updateCircles(calculatedProbability) {
@@ -120,11 +113,20 @@
             }
         }
 
+        function hideResultContainer() {
+            const result = document.getElementById("result");
+            result.style.visibility = "hidden";
+            result.style.height = "auto";
+            result.style.overflow = "hidden";
+        }
 
         function displayResult(ORR, ORR_CI, probCal, probCal2) {
+            const result = document.getElementById("result");
+            result.style.visibility = "visible";
+            result.style.height = "auto";
             // Reset the ResultHead and ResultExplanation to their initial values
             document.getElementById("ResultHead").innerHTML = "The likelihood of response to immune checkpoint blockade therapy (95% confidence interval)";
-            document.getElementById("ResultExplanation").innerHTML = "This result provides the likelihood of response to immune checkpoint blockade (ICB) therapy. The likelihood means that the calculator estimates that among 100 patients that share the same features as those entered, approximately <span id='probCal'>...</span> are likely to respond to ICB therapy, while <span id='probCal2'>...</span> are much less likely to respond,  Importantly, this is just a rough ballpark estimate, and each patient is an individual case and your physician is likely to give you a much better estimate, based on numerous additional features.<br><br><b>An important cautionary note</b>: The mechanism of cancer ICB response is complex, and the response is influenced by many other factors not included in this tool. It is <b>NOT approved by the FDA or any other official regulatory agencies, and by all means, should not serve as substitute for expert professional consultation.</b>";
+            document.getElementById("ResultExplanation").innerHTML = "This result provides the likelihood of response to immune checkpoint blockade (ICB) therapy. The likelihood means that the calculator estimates that among 100 patients that share the same features as those entered, approximately <span id='probCal'>...</span> are likely to respond to ICB therapy, while <span id='probCal2'>...</span> are much less likely to respond. Importantly, this is just a rough ballpark estimate, and each patient is an individual case and your physician is likely to give you a much better estimate, based on numerous additional features.<br><br><b>An important cautionary note</b>: The mechanism of cancer ICB response is complex, and the response is influenced by many other factors not included in this tool. It is <b>NOT approved by the FDA or any other official regulatory agencies, and by all means, should not serve as substitute for expert professional consultation.</b>";
             // Set the main calculated result
             document.getElementById("CalculatedResult").innerHTML = '<span style="font-size: 48px; font-weight: bold;">' + ORR + '</span><br><span style="font-size: 20px; font-weight: normal;">' + ORR_CI + '</span>';
             // Update the circles based on the calculated result
@@ -133,10 +135,6 @@
             document.getElementById("probCal").textContent = probCal;
             document.getElementById("probCal2").textContent = probCal2;
             }
-
-        window.onload = function() {
-            resetInput();
-        };
 
         function computeRisk() {
             // user inputs
@@ -259,14 +257,29 @@
             gap: 20px; /* Spacing between elements */
         }
 
-        #calculator, #result {
+        #calculator {
+            //display: flex; /* Make calculator a flex container */
+            //flex-direction: column; /* Arrange children (rows and buttons) in a column */
+            //justify-content: space-between; /* Space between the form and the buttons */
             background-color: white;
             border-radius: 8px;
             padding: 10px;
-            max-width: 620px;
-            min-width: 300px;
-            //min-height: 150px;
+            width: 30%;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #result {
+            visibility: hidden;
+            height: 0;
+            flex-direction: column; /* Arrange children in a column */
+            justify-content: space-between; /* Space between content */
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            padding-top: 40px; /* Additional padding at the top for the caption */
+            width: 60%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden; /* Prevents content from overflowing */
         }
 
         #calculator caption, #result caption {
@@ -450,7 +463,7 @@
 
             <tr>
                 <td>Patient age (years):</td>
-                <td colspan="2"> <input type="number" id="age" value="60" onChange="changeValue('age','ageSlide')" min=String(CONSTANTS.MIN_AGE) max=String(CONSTANTS.MAX_AGE)>
+                <td colspan="2"> <input type="number" id="age" value="60" onInput="changeValue('age','ageSlide')" min=String(CONSTANTS.MIN_AGE) max=String(CONSTANTS.MAX_AGE)>
                 <input type="range" id="ageSlide" value="60" onInput="changeSlide('age','ageSlide')" min=String(CONSTANTS.MIN_AGE) max=String(CONSTANTS.MAX_AGE)>
                 </td>
             </tr>
@@ -458,7 +471,7 @@
             <tr>
                 <td>Cancer type:</td>
                 <td colspan="2">
-                    <select id="cancer_type" onChange="resetInput();">
+                    <select id="cancer_type" onChange="hideResultContainer();">
                         <option value=""></option>
                         <option value="Bladder"selected>Bladder cancer</option>
                         <option value="Breast">Breast cancer</option>
@@ -484,10 +497,10 @@
             <tr>
                 <td>Previous systemic therapy:</td>
                 <td colspan="2">
-                    <select id="chemo_history" onChange="resetInput();">
+                    <select id="chemo_history" onChange="hideResultContainer();">
                         <option value=""></option>
-                        <option value="yes">yes</option>
-                        <option value="no"selected>no</option>
+                        <option value="yes"selected>yes</option>
+                        <option value="no">no</option>
                     </select>
                 </td>
             </tr>
@@ -495,21 +508,21 @@
             <tr>
                 <td>Blood albumin (g/dL):</td>
                 <td colspan="2">
-                    <input type="number" id="albumin" value="4" onChange="changeValue('albumin','albuminSlide')" min=String(CONSTANTS.MIN_Albumin) max=String(CONSTANTS.MAX_Albumin)>
+                    <input type="number" id="albumin" value="4" onInput="changeValue('albumin','albuminSlide')" min=String(CONSTANTS.MIN_Albumin) max=String(CONSTANTS.MAX_Albumin)>
                     <input type="range" id="albuminSlide" value="4" onInput="changeSlide('albumin','albuminSlide')" min=1.6 max=5.3 step="0.1">
                 </td>
             </tr>
 
             <tr>
                 <td>Blood neutrophil-to-lymphocyte ratio:</td>
-                <td colspan="2"> <input type="number" id="NLR" value="4" onChange="changeValue('NLR','NLRSlide')" min=String(CONSTANTS.MIN_NLR) max=String(CONSTANTS.MAX_NLR)>
+                <td colspan="2"> <input type="number" id="NLR" value="4" onInput="changeValue('NLR','NLRSlide')" min=String(CONSTANTS.MIN_NLR) max=String(CONSTANTS.MAX_NLR)>
                 <input type="range" id="NLRSlide" value="4" onInput="changeSlide('NLR','NLRSlide')" min=0 max=50>
                 </td>
             </tr>
 
             <tr>
                 <td>Tumor mutational burden (mut/Mb):</td>
-                <td colspan="2"> <input type="number" id="TMB" value="10" onChange="changeValue('TMB','TMBSlide')" min=String(CONSTANTS.MIN_TMB) max=String(CONSTANTS.MAX_TMB)>
+                <td colspan="2"> <input type="number" id="TMB" value="10" onInput="changeValue('TMB','TMBSlide')" min=String(CONSTANTS.MIN_TMB) max=String(CONSTANTS.MAX_TMB)>
                 <input type="range" id="TMBSlide" value="10" onInput="changeSlide('TMB','TMBSlide')" min=0 max=100>
                 </td>
             </tr>
