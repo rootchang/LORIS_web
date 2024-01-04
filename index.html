@@ -22,14 +22,17 @@
 
         function showMore() {
             var moreText = document.getElementById("moreText");
-            var learnMoreLink = document.getElementById("learnMoreLink");
+            var initialText = document.getElementById("initialText");
+            var linkText = document.getElementById("learnMoreLink");
 
             if (moreText.style.display === "none") {
                 moreText.style.display = "inline";
-                learnMoreLink.innerHTML = "[show less]";
+                initialText.style.display = "none";
+                linkText.innerHTML = "[show less]";
             } else {
                 moreText.style.display = "none";
-                learnMoreLink.innerHTML = "[show more]";
+                initialText.style.display = "inline";
+                linkText.innerHTML = "[show more]";
             }
         }
 
@@ -140,7 +143,7 @@
             result.style.height = "auto";
             // Reset the ResultHead and ResultExplanation to their initial values
             document.getElementById("ResultHead").innerHTML = "The likelihood of response to immune checkpoint blockade therapy (95% confidence interval)";
-            document.getElementById("ResultExplanation").innerHTML = "This result provides the likelihood of response to immune checkpoint blockade therapy. The likelihood means that the calculator estimates that among 100 patients that share the same features as those entered, approximately <span id='probCal'>...</span> are likely to respond to the immune checkpoint blockade therapy, while <span id='probCal2'>...</span> are much less likely to respond. Importantly, this is just a rough ballpark estimate, and each patient is an individual case; your physician is likely to give you a much better estimate, based on numerous additional features.<br><br><b style='color: red;'>Disclaimer</b>: This tool is provided for informational purposes only and should <b>NOT</b> be considered as medical advice or a substitute for professional consultation. Users should seek appropriate medical guidance and make clinical decisions based on their specific circumstances and in consultation with qualified healthcare professionals.</b>";
+            document.getElementById("ResultExplanation").innerHTML = "This result predicts how likely you are to respond to immune checkpoint blockade therapy. The likelihood means that out of 100 patients with similar characteristics, approximately <span id='probCal'>...</span> may benefit from this therapy. However, it's important to recognize that this is just a rough ballpark estimate. Individual patient outcomes can vary significantly, and a healthcare provider can provide a more precise assessment, taking into account a broader range of factors and personal medical history.<br><br> <b style='color: red;'>Disclaimer</b>: This tool is provided for informational purposes only and should <b>NOT</b> be considered as medical advice or a substitute for professional consultation. Users should seek proper medical counsel and discuss their treatment options with a qualified healthcare provider.</b>";            // Set the main calculated result
             // Set the main calculated result
             document.getElementById("CalculatedResult").innerHTML = '<span style="font-size: 48px; font-weight: bold;">' + ORR + '</span><br><span style="font-size: 20px; font-weight: normal;">' + ORR_CI + '</span>';
             // Update the circles based on the calculated result
@@ -302,7 +305,7 @@
             margin-top: 10px; /* Add space above the caption */
             margin-bottom: 10px; /* Add space below the caption */
             text-align: center; /* Align the text */
-            color: darkgreen; /* Set the color */
+            color: black; /* Set the color */
             font-family: 'Impact', sans-serif; // Arial, Impact, Verdana, Helvetica, Georgia, Tahoma
         }
 
@@ -416,14 +419,15 @@
         }
 
         .content-container {
-            min-height: calc(100vh - 350px);
+            min-height: calc(100vh - 400px);
         }
 
         .bottom {
             font-size: 1.2em;
             //color: #666;
             text-align: center;
-            margin-top: 20px;
+            margin-top: 0px;
+            margin-bottom: 10px;
         }
 
         @media (max-width: 1000px) {
@@ -462,15 +466,14 @@
             <span style="font-size: 7; font-family: Georgia, Arial; color: #DA6619;">S</span>core
         </h1>
         <p style="line-height: 1.5; text-align: center;">
-            This tool calculates the likelihood of patient response to immunotherapy.
+            <span id="initialText">This tool calculates the likelihood of patient response to immunotherapy.</span>
             <span id="moreText" style="display: none;">
-                Based on a few common clinical, pathologic, and genomic features, this tool provides an estimate of the likelihood of response to immune
-                checkpoint blockade therapy (including anti-PD-1, anti-PD-L1, and anti-CTLA-4) for different cancer types.
-                This is a research tool provided here as a service to the community. <b>Notably and
-                importantly, it is NOT approved by the FDA or any other official regulatory agencies, and by all means, should
-                not serve as a substitute for expert professional consultation.</b> (learn more from <a href='https://doi.org/10.1101/2023.07.04.547697' target='_blank'>Original Publication</a>)
+                This tool utilizes common clinical, pathological, and genetic factors to estimate the likelihood of a patient's response to immune checkpoint blockade therapies. These therapies include anti-PD-1, anti-PD-L1, and combinations with anti-CTLA-4, which are used in treating various types of cancer.
+                Patients with complete or partial responses are classified as responders, while those with progressive or stable disease are non-responders. Response evaluations follow the Response Evaluation Criteria in Solid Tumors (<a href='https://doi.org/10.1016/j.ejca.2008.10.026' target='_blank'>RECIST version 1.1</a>), a widely used standard by healthcare professionals to monitor treatment effectiveness based on changes in tumor size and appearance.
+                Please note that LORIS is a research tool designed for community service. Please see the <a href='https://doi.org/10.1101/2023.07.04.547697' target='_blank'>Original Publication</a> for details on model development and evaluations.
             </span>
             <a href="#" onclick="showMore()" id="learnMoreLink">[show more]</a>
+            <span><br><br> <b style='color: red;'>Disclaimer: This tool is NOT approved by the FDA or any other regulatory bodies and should not replace professional medical advice.</b></span>
         </p>
     </div>
 
