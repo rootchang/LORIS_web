@@ -40,7 +40,7 @@
             hideResultContainer();
             if (elementId == "age") {
                 MIN_val = 0
-                MAX_val = 100
+                MAX_val = 94
             } else if (elementId == "TMB") {
                 MIN_val = 0
                 MAX_val = 100
@@ -156,25 +156,37 @@
         function computeRisk() {
             // user inputs
             let age = document.getElementById("age").value;
-            let cancer_type = document.getElementById("cancer_type").value;
-            let chemo_history = document.getElementById("chemo_history").value;
-            let albumin = document.getElementById("albumin").value;
-            if (albumin<1.6) {
-              alert("The entered value of Blood albumin is out of the allowed range. Please adjust the slider to select a value within the permitted range.");
-              document.getElementById("albumin").innerHTML = "";
-              document.getElementById("albumin").value = "";
-              value_set = 1.6;
-              document.getElementById(elementSlideId).value = value_set;
-              return;
-            }
-            let NLR = document.getElementById("NLR").value;
-            let TMB = document.getElementById("TMB").value;
-
             if (age=="") {
                 alert("Please enter a valid patient age!");
                 return;
             }
             age = Number(age);
+            if (age<3) {
+              alert("The entered value of Patient age is out of the allowed range. Please adjust the slider to select a value within the permitted range.");
+              document.getElementById("age").innerHTML = "";
+              document.getElementById("age").value = "";
+              value_set = 3;
+              document.getElementById("ageSlide").value = value_set;
+              return;
+            }
+            let cancer_type = document.getElementById("cancer_type").value;
+            let chemo_history = document.getElementById("chemo_history").value;
+            let albumin = document.getElementById("albumin").value;
+            if (albumin=="") {
+                alert("Please enter a valid Blood albumin!");
+                return;
+            }
+            albumin = Number(albumin);
+            if (albumin<1.6) {
+              alert("The entered value of Blood albumin is out of the allowed range. Please adjust the slider to select a value within the permitted range.");
+              document.getElementById("albumin").innerHTML = "";
+              document.getElementById("albumin").value = "";
+              value_set = 1.6;
+              document.getElementById("albuminSlide").value = value_set;
+              return;
+            }
+            let NLR = document.getElementById("NLR").value;
+            let TMB = document.getElementById("TMB").value;
 
             if (cancer_type=="") {
                 alert("Please select a valid Cancer type!");
@@ -185,12 +197,6 @@
                 alert("Please select a valid Previous systemic therapy history!");
                 return;
             }
-
-            if (albumin=="") {
-                alert("Please enter a valid Blood albumin!");
-                return;
-            }
-            albumin = Number(albumin);
 
             if (NLR=="") {
                 alert("Please enter a valid Blood neutrophil-to-lymphocyte ratio!");
@@ -491,8 +497,8 @@
 
             <tr>
                 <td>Patient age (years):</td>
-                <td colspan="2"> <input type="number" id="age" value="60" onInput="changeValue('age','ageSlide')" min=0 max=100>
-                <input type="range" id="ageSlide" value="60" onInput="changeSlide('age','ageSlide')" min=0 max=100>
+                <td colspan="2"> <input type="number" id="age" value="60" onInput="changeValue('age','ageSlide')" min=3 max=94>
+                <input type="range" id="ageSlide" value="60" onInput="changeSlide('age','ageSlide')" min=3 max=94>
                 </td>
             </tr>
 
