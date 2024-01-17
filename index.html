@@ -39,17 +39,17 @@
         function changeValue(elementId, elementSlideId) {
             hideResultContainer();
             if (elementId == "age") {
-                MIN_val = CONSTANTS.MIN_AGE
-                MAX_val = CONSTANTS.MAX_AGE
+                MIN_val = 0
+                MAX_val = 100
             } else if (elementId == "TMB") {
-                MIN_val = CONSTANTS.MIN_TMB
-                MAX_val = CONSTANTS.MAX_TMB
+                MIN_val = 0
+                MAX_val = 100
             } else if (elementId == "albumin") {
-                MIN_val = CONSTANTS.MIN_Albumin
-                MAX_val = CONSTANTS.MAX_Albumin
+                MIN_val = 0
+                MAX_val = 5.3
             } else if (elementId == "NLR") {
-                MIN_val = CONSTANTS.MIN_NLR
-                MAX_val = CONSTANTS.MAX_NLR
+                MIN_val = 0
+                MAX_val = 50
             }
 
             let value_set = document.getElementById(elementId).value;
@@ -103,13 +103,13 @@
 
         function clearInputs() {
             document.getElementById('age').value = '';
-            document.getElementById('ageSlide').value = String(CONSTANTS.MIN_AGE);
+            document.getElementById('ageSlide').value = 0;
             document.getElementById('TMB').value = '';
-            document.getElementById('TMBSlide').value = String(CONSTANTS.MIN_TMB);
+            document.getElementById('TMBSlide').value = 0;
             document.getElementById('albumin').value = '';
-            document.getElementById('albuminSlide').value = String(CONSTANTS.MIN_Albumin);
+            document.getElementById('albuminSlide').value = 1.6;
             document.getElementById('NLR').value = '';
-            document.getElementById('NLRSlide').value = String(0);
+            document.getElementById('NLRSlide').value = 0;
             document.getElementById('cancer_type').selectedIndex = 0;
             document.getElementById('chemo_history').selectedIndex = 0;
             hideResultContainer();
@@ -159,6 +159,14 @@
             let cancer_type = document.getElementById("cancer_type").value;
             let chemo_history = document.getElementById("chemo_history").value;
             let albumin = document.getElementById("albumin").value;
+            if (albumin<1.6) {
+              alert("The entered value of Blood albumin is out of the allowed range. Please adjust the slider to select a value within the permitted range.");
+              document.getElementById("albumin").innerHTML = "";
+              document.getElementById("albumin").value = "";
+              value_set = 1.6;
+              document.getElementById(elementSlideId).value = value_set;
+              return;
+            }
             let NLR = document.getElementById("NLR").value;
             let TMB = document.getElementById("TMB").value;
 
@@ -483,8 +491,8 @@
 
             <tr>
                 <td>Patient age (years):</td>
-                <td colspan="2"> <input type="number" id="age" value="60" onInput="changeValue('age','ageSlide')" min=String(CONSTANTS.MIN_AGE) max=String(CONSTANTS.MAX_AGE)>
-                <input type="range" id="ageSlide" value="60" onInput="changeSlide('age','ageSlide')" min=String(CONSTANTS.MIN_AGE) max=String(CONSTANTS.MAX_AGE)>
+                <td colspan="2"> <input type="number" id="age" value="60" onInput="changeValue('age','ageSlide')" min=0 max=100>
+                <input type="range" id="ageSlide" value="60" onInput="changeSlide('age','ageSlide')" min=0 max=100>
                 </td>
             </tr>
 
@@ -528,21 +536,21 @@
             <tr>
                 <td>Blood albumin (g/dL):</td>
                 <td colspan="2">
-                    <input type="number" id="albumin" value="4" onInput="changeValue('albumin','albuminSlide')" min=String(CONSTANTS.MIN_Albumin) max=String(CONSTANTS.MAX_Albumin)>
+                    <input type="number" id="albumin" value="4" onInput="changeValue('albumin','albuminSlide')" min=1.6 max=5.3>
                     <input type="range" id="albuminSlide" value="4" onInput="changeSlide('albumin','albuminSlide')" min=1.6 max=5.3 step="0.1">
                 </td>
             </tr>
 
             <tr>
                 <td>Blood neutrophil-to-lymphocyte ratio:</td>
-                <td colspan="2"> <input type="number" id="NLR" value="4" onInput="changeValue('NLR','NLRSlide')" min=String(CONSTANTS.MIN_NLR) max=String(CONSTANTS.MAX_NLR)>
+                <td colspan="2"> <input type="number" id="NLR" value="4" onInput="changeValue('NLR','NLRSlide')" min=0 max=50>
                 <input type="range" id="NLRSlide" value="4" onInput="changeSlide('NLR','NLRSlide')" min=0 max=50>
                 </td>
             </tr>
 
             <tr>
                 <td>Tumor mutational burden (mut/Mb):</td>
-                <td colspan="2"> <input type="number" id="TMB" value="10" onInput="changeValue('TMB','TMBSlide')" min=String(CONSTANTS.MIN_TMB) max=String(CONSTANTS.MAX_TMB)>
+                <td colspan="2"> <input type="number" id="TMB" value="10" onInput="changeValue('TMB','TMBSlide')" min=0 max=100>
                 <input type="range" id="TMBSlide" value="10" onInput="changeSlide('TMB','TMBSlide')" min=0 max=100>
                 </td>
             </tr>
