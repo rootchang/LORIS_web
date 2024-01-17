@@ -143,14 +143,14 @@
             result.style.height = "auto";
             // Reset the ResultHead and ResultExplanation to their initial values
             document.getElementById("ResultHead").innerHTML = "The likelihood of response to immune checkpoint blockade therapy (95% confidence interval)";
-            document.getElementById("ResultExplanation").innerHTML = "This result predicts how likely you are to respond to immune checkpoint blockade therapy. The likelihood means that out of 100 patients with similar characteristics, approximately <span id='probCal'>...</span> may benefit from this therapy. However, it's important to recognize that this is just a rough ballpark estimate. Individual patient outcomes can vary significantly, and a healthcare provider can provide a more precise assessment, taking into account a broader range of factors and personal medical history.<br><br> <b style='color: red;'>Disclaimer</b>: This tool is provided for informational purposes only and should <b>NOT</b> be considered as medical advice or a substitute for professional consultation. Users should seek proper medical counsel and discuss their treatment options with a qualified healthcare provider.</b>";            // Set the main calculated result
+            document.getElementById("ResultExplanation").innerHTML = "This result predicts how likely you are to respond to immune checkpoint blockade therapy. The likelihood means that out of 100 patients with similar characteristics, approximately <span id='probCal'>...</span> may benefit from this therapy. More specifically, we're 95% confident that <span id='probCal2'>...</span> out of 100 patients may benefit from this therapy, based on our training data. However, it's important to recognize that this is just a rough ballpark estimate. Individual patient outcomes can vary significantly, and a healthcare provider can provide a more precise assessment, taking into account a broader range of factors and personal medical history.<br><br> <b style='color: red;'>Disclaimer</b>: This tool is provided for informational purposes only and should <b>NOT</b> be considered as medical advice or a substitute for professional consultation. Users should seek proper medical counsel and discuss their treatment options with a qualified healthcare provider.</b>";            // Set the main calculated result
             // Set the main calculated result
             document.getElementById("CalculatedResult").innerHTML = '<span style="font-size: 48px; font-weight: bold;">' + ORR + '</span><br><span style="font-size: 20px; font-weight: normal;">' + ORR_CI + '</span>';
             // Update the circles based on the calculated result
             updateCircles(probCal); // Reuse the function you have for generating circles
             // Update the probability values in the explanation
             document.getElementById("probCal").textContent = probCal;
-            document.getElementById("probCal2").textContent = probCal2;
+            document.getElementById("probCal2").textContent = ORR_CI.slice(1, -2);
             }
 
         function computeRisk() {
