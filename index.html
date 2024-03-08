@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script src="/__/firebase/10.7.1/firebase-app.js"></script>
+    <script src="/__/firebase/10.7.1/firebase-analytics.js"></script>
     <script src="const.js"></script>
     <meta charset="utf-8">
     <title>LORIS: LOgistic Regression-based Immunotherapy-response Score, by National Cancer Institute & Memorial Sloan Kettering Cancer Center</title>
@@ -46,6 +50,9 @@
             } else if (elementId == "NLR") {
                 MIN_val = 0
                 MAX_val = 50
+            } else if (elementId == "PDL1") {
+                MIN_val = 0
+                MAX_val = 100
             }
 
             let value_set = document.getElementById(elementId).value;
@@ -77,16 +84,25 @@
             return closest;
         }
 
-        function displayRisk(OR) {
+        function displayRisk(OR, model_type) {
             let risk = 1 / (1 + OR);
             risk = Math.round(risk * 100) / 100;
             let closestScore = findClosestScore(risk);
             let ORR;
             let ORR025;
             let ORR975;
-
-            [ORR, ORR025, ORR975] = CONSTANTS.score_ORR_lookup_LLR6Pan[closestScore];
-
+            if (model_type == "LLR6Pan"){
+                [ORR, ORR025, ORR975] = CONSTANTS.score_ORR_lookup_LLR6Pan[closestScore];
+            } else if (model_type == "LLR6NSCLC"){
+                [ORR, ORR025, ORR975] = CONSTANTS.score_ORR_lookup_LLR6NSCLC[closestScore];
+            } else if (model_type == "LLR5Pan"){
+                [ORR, ORR025, ORR975] = CONSTANTS.score_ORR_lookup_LLR5Pan[closestScore];
+            } else if (model_type == "LLR5NSCLC"){
+                [ORR, ORR025, ORR975] = CONSTANTS.score_ORR_lookup_LLR5NSCLC[closestScore];
+            } else {
+                alert("Please select a valid Model!");
+                return;
+            }
             NR_in_100 = String((100-ORR * 100).toFixed(0));
             R_in_100 = String((ORR * 100).toFixed(0));
             ORR = String((ORR * 100).toFixed(0)) + '%';
@@ -98,10 +114,13 @@
         }
 
         function clearInputs() {
+            document.getElementById('model_type').selectedIndex = 0;
             document.getElementById('age').value = '';
             document.getElementById('ageSlide').value = 0;
             document.getElementById('TMB').value = '';
             document.getElementById('TMBSlide').value = 0;
+            document.getElementById('PDL1').value = '';
+            document.getElementById('PDL1Slide').value = 0;
             document.getElementById('albumin').value = '';
             document.getElementById('albuminSlide').value = 1.6;
             document.getElementById('NLR').value = '';
@@ -109,6 +128,14 @@
             document.getElementById('cancer_type').selectedIndex = 0;
             document.getElementById('chemo_history').selectedIndex = 0;
             hideResultContainer();
+        }
+
+        function setDisabledStyle(elementId) {
+          document.getElementById(elementId).classList.add("disabled");
+        }
+
+        function setEnabledStyle(elementId) {
+          document.getElementById(elementId).classList.remove("disabled");
         }
 
         function updateCircles(calculatedProbability) {
@@ -137,17 +164,52 @@
             const result = document.getElementById("result");
             result.style.visibility = "visible";
             result.style.height = "auto";
+
             // Reset the ResultHead and ResultExplanation to their initial values
             document.getElementById("ResultHead").innerHTML = "The likelihood of response to immune checkpoint blockade therapy (95% confidence interval)";
-            document.getElementById("ResultExplanation").innerHTML = "This result predicts how likely you are to respond to immune checkpoint blockade therapy. The likelihood means that out of 100 patients with similar characteristics, approximately <span id='probCal'>...</span> may benefit from this therapy. More specifically, we're 95% confident that <span id='probCal2'>...</span> out of 100 patients may benefit from this therapy, based on our training data. However, it's important to recognize that this is just a rough ballpark estimate. Individual patient outcomes can vary significantly, and a healthcare provider can provide a more precise assessment, taking into account a broader range of factors and personal medical history.<br><br> <b style='color: red;'>Disclaimer</b>: This tool is provided for informational purposes only and should <b>NOT</b> be considered as medical advice or a substitute for professional consultation. Users should seek proper medical counsel and discuss their treatment options with a qualified healthcare provider.</b>";            // Set the main calculated result
-            // Set the main calculated result
+            document.getElementById("ResultExplanation").innerHTML = "This result predicts how likely you are to respond to immune checkpoint blockade therapy. The likelihood means that out of 100 patients with similar characteristics, approximately <span id='probCal'>...</span> may benefit from this therapy. However, it's important to recognize that this is just a rough ballpark estimate. Individual patient outcomes can vary significantly, and a healthcare provider can provide a more precise assessment, taking into account a broader range of factors and personal medical history.<br><br> <b style='color: red;'>Disclaimer</b>: This tool is provided for informational purposes only and should <b>NOT</b> be considered as medical advice or a substitute for professional consultation. Users should seek proper medical counsel and discuss their treatment options with a qualified healthcare provider.</b>";            // Set the main calculated result
             document.getElementById("CalculatedResult").innerHTML = '<span style="font-size: 48px; font-weight: bold;">' + ORR + '</span><br><span style="font-size: 20px; font-weight: normal;">' + ORR_CI + '</span>';
             // Update the circles based on the calculated result
             updateCircles(probCal); // Reuse the function you have for generating circles
             // Update the probability values in the explanation
             document.getElementById("probCal").textContent = probCal;
-            document.getElementById("probCal2").textContent = ORR_CI.slice(1, -2);
+            document.getElementById("probCal2").textContent = probCal2;
             }
+
+        window.onload = function() {
+            setDisabledStyle("PDL1row");
+            hideResultContainer();
+        };
+
+        function checkModelType() {
+            hideResultContainer();
+
+            var modelType = document.getElementById("model_type").value;
+            if (modelType === "LLR6Pan") {
+                setEnabledStyle("PSTrow");
+                setEnabledStyle("CTrow");
+                // Disable PDL1 input
+                setDisabledStyle("PDL1row");
+            } else if (modelType === "LLR5Pan") {
+                setEnabledStyle("CTrow");
+                // Disable PDL1 and chemo_history input
+                setDisabledStyle("PDL1row");
+                setDisabledStyle("PSTrow");
+            } else if (modelType === "LLR6NSCLC") {
+                setEnabledStyle("PSTrow");
+                setEnabledStyle("PDL1row");
+                // Disable cancer_type input
+                setDisabledStyle("CTrow");
+            } else if (modelType === "LLR5NSCLC") {
+                setEnabledStyle("PDL1row");
+                // Disable cancer_type and chemo_history input
+                setDisabledStyle("CTrow");
+                setDisabledStyle("PSTrow");
+            } else {
+                alert("Please select a valid Model!");
+                return;
+            }
+        }
 
         function computeRisk() {
             // user inputs
@@ -183,30 +245,46 @@
             }
             let NLR = document.getElementById("NLR").value;
             let TMB = document.getElementById("TMB").value;
+            let PDL1 = document.getElementById("PDL1").value;
+            let model_type = document.getElementById("model_type").value;
 
-            if (cancer_type=="") {
-                alert("Please select a valid Cancer type!");
-                return;
+            if (["LLR6Pan", "LLR5Pan"].includes(model_type)) {
+                if (cancer_type=="") {
+                    alert("Please select a valid Cancer type!");
+                    return;
+                }
             }
 
-            if (chemo_history=="") {
-                alert("Please select a valid Previous systemic therapy history!");
-                return;
+            if (["LLR6Pan", "LLR6NSCLC"].includes(model_type)) {
+                if (chemo_history=="") {
+                    alert("Please select a valid Previous systemic therapy history!");
+                    return;
+                }
             }
 
             if (NLR=="") {
                 alert("Please enter a valid Blood neutrophil-to-lymphocyte ratio!");
                 return;
             }
-            NLR = Number(NLR);
+            NLR = Number(NLR)
 
             if (TMB=="") {
                 alert("Please enter a valid Tumor mutational burden!");
                 return;
             }
-            TMB = Number(TMB);
+            TMB = Number(TMB)
 
-            let mortalityLogOR = -2.663569384884529 +
+            if (["LLR6NSCLC", "LLR5NSCLC"].includes(model_type)) {
+                if (PDL1=="") {
+                    alert("Please enter a valid PD-L1 tumor proportion score!");
+                    return;
+                }
+                PDL1 = Number(PDL1)
+            }
+
+            let mortalityLogOR;
+            if (model_type == "LLR6Pan"){
+                mortalityLogOR = -2.663569384884529 +
                 Math.min(TMB,50) * 0.04402069 +
                 (chemo_history=='yes') * -0.95742317 +
                 albumin * 0.65691216 +
@@ -229,12 +307,53 @@
                 (cancer_type=="Sarcoma") * 0.04696853834374907 +
                 (cancer_type=="SCLC") * -0.005779413239244845 +
                 (cancer_type=="Other") * 0;
-
+            } else if (model_type == "LLR6NSCLC"){
+                mortalityLogOR = -1.5413249116546892 +
+                Math.min(TMB,50) * 3.53526307e-02 +
+                PDL1 * 1.10577809e-02 +
+                (chemo_history=='yes') * -3.71124609e-01 +
+                albumin * 2.87634044e-01 +
+                Math.min(NLR,25) * -1.05921890e-02 +
+                Math.min(age,85) * 3.01592069e-05;
+            } else if (model_type == "LLR5Pan"){
+                mortalityLogOR = -3.7256067282515746 +
+                Math.min(TMB,50) * 0.04585159 +
+                albumin * 0.71900319 +
+                Math.min(NLR,25) * -0.04498181 +
+                Math.min(age,85) * 0.0109262  +
+                (cancer_type=="Bladder") * -0.5539934636232641 +
+                (cancer_type=="Breast") * -0.25290341309416775 +
+                (cancer_type=="Colorectal") * -0.3428875211355777 +
+                (cancer_type=="Endometrial") * -0.010927160925007623 +
+                (cancer_type=="Esophageal") * 0.4806365485191027 +
+                (cancer_type=="Gastric") * 0.329660841860277 +
+                (cancer_type=="Head_Neck") * -0.004476773562338537 +
+                (cancer_type=="Hepatobiliary") * -0.287359968199123 +
+                (cancer_type=="Melanoma") * 0.22342414393479748 +
+                (cancer_type=="Mesothelioma") * -0.0725466133039033 +
+                (cancer_type=="NSCLC") * 0.02028427707293726 +
+                (cancer_type=="Ovarian") * -0.22345051882807654 +
+                (cancer_type=="Pancreatic") * -1.4182469247677578 +
+                (cancer_type=="Renal") * 0.782968065894044 +
+                (cancer_type=="Sarcoma") * 0.00018395873172186955 +
+                (cancer_type=="SCLC") * -0.14659309353129546 +
+                (cancer_type=="Other") * 0;
+            } else if (model_type == "LLR5NSCLC"){
+                mortalityLogOR = -1.9673291213370763 +
+                Math.min(TMB,50) * 3.61540803e-02 +
+                PDL1 * 1.30231965e-02 +
+                albumin * 3.25593123e-01 +
+                Math.min(NLR,25) * -1.03800630e-02 +
+                Math.min(age,85) * 7.52832651e-05;
+            } else{
+                alert("Please select a valid Model!");
+                return;
+            }
             let mortalityOR = Math.exp(-mortalityLogOR);
-            let CalculatedResult = displayRisk(mortalityOR);
-
-
+            let CalculatedResult = displayRisk(mortalityOR, model_type);
             displayResult(CalculatedResult[0], CalculatedResult[1], CalculatedResult[2], CalculatedResult[3]);
+            //document.getElementById("CalculatedResult").innerHTML = CalculatedResult[0];
+            //document.getElementById("ResultExplanation").innerHTML = CalculatedResult[1];
         }
 
     </script>
@@ -246,6 +365,10 @@
             color: #333;
             margin: 0;
             padding: 0;
+        }
+
+        .disabled {
+          display: none;
         }
 
         .banner {
@@ -272,14 +395,17 @@
         }
 
         h1 {
-            //font-size: 2vw;
+            //font-size: 40px;
             font-family: 'Roboto', sans-serif;
             margin-bottom: 10px;
+            margin-top: 10px;
         }
 
         #container {
+            margin-top: 10px;
+            margin-left: 20px;
             display: flex;
-            justify-content: center;
+            justify-content: left;
             align-items: flex-start;
             gap: 20px; /* Spacing between elements */
         }
@@ -315,7 +441,7 @@
             margin-top: 10px; /* Add space above the caption */
             margin-bottom: 10px; /* Add space below the caption */
             text-align: center; /* Align the text */
-            color: black; /* Set the color */
+            color: black; /* Set the color darkgreen*/
             font-family: 'Impact', sans-serif; // Arial, Impact, Verdana, Helvetica, Georgia, Tahoma
         }
 
@@ -340,7 +466,7 @@
         #calculator input[type="number"] {
             width: 30%; /* Smaller width for text box */
             padding: 8px;
-            margin-top: 15px;
+            margin-top: 5px;
             border: 1px solid #ddd;
             border-radius: 4px;
             box-sizing: border-box;
@@ -442,9 +568,12 @@
 
         @media (max-width: 1000px) {
             h1 {
-                //font-size: 2.3vw; /* Adjust font size for smaller screens */
+                //font-size: 40px; /* Adjust font size for smaller screens */
             }
-            .banner, .bottom {
+            .banner{
+                padding: 10px; /* Reduce padding */
+            }
+            .bottom {
                 padding: 10px; /* Reduce padding */
             }
             #container {
@@ -490,15 +619,27 @@
     <div class="content-container" id="container">
         <table id="calculator">
             <caption>Your information</caption> <!-- Header for the calculator table -->
-
             <tr>
-                <td>Patient age (years):</td>
-                <td colspan="2"> <input type="number" id="age" value="60" onInput="changeValue('age','ageSlide')" min=3 max=94>
-                <input type="range" id="ageSlide" value="60" onInput="changeSlide('age','ageSlide')" min=3 max=94>
+                <td><b>Model used:</b></td>
+                <td colspan="2">
+                    <select id="model_type" onChange="checkModelType()">
+                        <option value=""></option>
+                        <option value="LLR6Pan"selected>Pan-cancer model (6 variables) [default]</option>
+                        <option value="LLR6NSCLC">Non-small cell lung cancer-specific model (6 variables)</option>
+                        <option value="LLR5Pan">Pan-cancer model (5 variables)</option>
+                        <option value="LLR5NSCLC">Non-small cell lung cancer-specific model (5 variables)</option>
+                    </select>
                 </td>
             </tr>
 
             <tr>
+                <td>Patient age (years):</td>
+                <td colspan="2"> <input type="number" id="age" value="60" onInput="changeValue('age','ageSlide')" min=String(3) max=String(94)>
+                <input type="range" id="ageSlide" value="60" onInput="changeSlide('age','ageSlide')" min=3 max=94>
+                </td>
+            </tr>
+
+            <tr id="CTrow">
                 <td>Cancer type:</td>
                 <td colspan="2">
                     <select id="cancer_type" onChange="hideResultContainer();">
@@ -524,7 +665,7 @@
                 </td>
             </tr>
 
-            <tr>
+            <tr id="PSTrow">
                 <td>Previous systemic therapy:</td>
                 <td colspan="2">
                     <select id="chemo_history" onChange="hideResultContainer();">
@@ -538,22 +679,29 @@
             <tr>
                 <td>Blood albumin (g/dL):</td>
                 <td colspan="2">
-                    <input type="number" id="albumin" value="4" onInput="changeValue('albumin','albuminSlide')" min=1.6 max=5.3>
+                    <input type="number" id="albumin" value="4" onInput="changeValue('albumin','albuminSlide')" min=String(1.6) max=String(5.3)>
                     <input type="range" id="albuminSlide" value="4" onInput="changeSlide('albumin','albuminSlide')" min=1.6 max=5.3 step="0.1">
                 </td>
             </tr>
 
             <tr>
                 <td>Blood neutrophil-to-lymphocyte ratio:</td>
-                <td colspan="2"> <input type="number" id="NLR" value="4" onInput="changeValue('NLR','NLRSlide')" min=0 max=50>
+                <td colspan="2"> <input type="number" id="NLR" value="4" onInput="changeValue('NLR','NLRSlide')" min=String(0) max=String(50)>
                 <input type="range" id="NLRSlide" value="4" onInput="changeSlide('NLR','NLRSlide')" min=0 max=50>
                 </td>
             </tr>
 
             <tr>
                 <td>Tumor mutational burden (mut/Mb):</td>
-                <td colspan="2"> <input type="number" id="TMB" value="10" onInput="changeValue('TMB','TMBSlide')" min=0 max=100>
+                <td colspan="2"> <input type="number" id="TMB" value="10" onInput="changeValue('TMB','TMBSlide')" min=String(0) max=String(100)>
                 <input type="range" id="TMBSlide" value="10" onInput="changeSlide('TMB','TMBSlide')" min=0 max=100>
+                </td>
+            </tr>
+
+            <tr id="PDL1row">
+                <td>PD-L1 tumor proportion score (%):</td>
+                <td colspan="2"> <input type="number" id="PDL1" value="" onInput="changeValue('PDL1','PDL1Slide')" min=String(0) max=String(100)>
+                <input type="range" id="PDL1Slide" value="0" onInput="changeSlide('PDL1','PDL1Slide')" min=0 max=100>
                 </td>
             </tr>
         </table>
@@ -597,8 +745,31 @@
         Citation: <a href="https://doi.org/10.1101/2023.07.04.547697" target='_blank'>Chang et al.
                 Robust prediction of patient outcomes with immune checkpoint blockade therapy for cancer using common clinical,
                 pathologic, and genomic features. <i>Nature Cancer</i>, (2024)</a><br>
+        Version 1.1, updated March 8, 2024.<br>
         </small>
     </div>
+
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+      // Your web app's Firebase configuration
+      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+      const firebaseConfig = {
+        apiKey: "AIzaSyBvqQMFQWkJ-WD2IMctDIG03ZGNx4bDXbg",
+        authDomain: "loris-fd1d0.firebaseapp.com",
+        projectId: "loris-fd1d0",
+        storageBucket: "loris-fd1d0.appspot.com",
+        messagingSenderId: "746918400012",
+        appId: "1:746918400012:web:91715c7c9b6572406d9e29",
+        measurementId: "G-HX31NCZC7Y"
+      };
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app);
+    </script>
 
 </body>
 </html>
